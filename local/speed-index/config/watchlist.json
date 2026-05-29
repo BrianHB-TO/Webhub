@@ -1,0 +1,240 @@
+{
+  "origin": "https://www.joinhomebase.com",
+  "defaultDevices": ["mobile", "desktop"],
+  "urls": [
+    {
+      "id": "home",
+      "path": "/",
+      "url": "https://www.joinhomebase.com/",
+      "label": "Homepage",
+      "group": "Core marketing",
+      "priority": 1,
+      "tags": ["origin", "marketing"]
+    },
+    {
+      "id": "solutions",
+      "path": "/solutions",
+      "url": "https://www.joinhomebase.com/solutions",
+      "label": "Solutions",
+      "group": "Core marketing",
+      "priority": 2,
+      "tags": ["marketing"]
+    },
+    {
+      "id": "pricing",
+      "path": "/pricing",
+      "url": "https://www.joinhomebase.com/pricing",
+      "label": "Pricing",
+      "group": "Core marketing",
+      "priority": 2,
+      "tags": ["marketing", "conversion"]
+    },
+    {
+      "id": "payroll",
+      "path": "/payroll",
+      "url": "https://www.joinhomebase.com/payroll",
+      "label": "Payroll",
+      "group": "Payroll",
+      "priority": 2,
+      "tags": ["product"]
+    },
+    {
+      "id": "free-payroll",
+      "path": "/free-payroll",
+      "url": "https://www.joinhomebase.com/free-payroll",
+      "label": "Free payroll",
+      "group": "Payroll",
+      "priority": 3,
+      "tags": ["product", "landing-page"]
+    },
+    {
+      "id": "payroll-app",
+      "path": "/payroll-app",
+      "url": "https://www.joinhomebase.com/payroll-app",
+      "label": "Payroll app",
+      "group": "Payroll",
+      "priority": 3,
+      "tags": ["product", "app"]
+    },
+    {
+      "id": "free-employee-scheduling-app-lp",
+      "path": "/free-employee-scheduling-app-lp",
+      "url": "https://www.joinhomebase.com/free-employee-scheduling-app-lp",
+      "label": "Free employee scheduling app LP",
+      "group": "Scheduling",
+      "priority": 3,
+      "tags": ["product", "landing-page"]
+    },
+    {
+      "id": "free-scheduling",
+      "path": "/free-scheduling",
+      "url": "https://www.joinhomebase.com/free-scheduling",
+      "label": "Free scheduling",
+      "group": "Scheduling",
+      "priority": 3,
+      "tags": ["product"]
+    },
+    {
+      "id": "employee-scheduling",
+      "path": "/employee-scheduling",
+      "url": "https://www.joinhomebase.com/employee-scheduling",
+      "label": "Employee scheduling",
+      "group": "Scheduling",
+      "priority": 2,
+      "tags": ["product"]
+    },
+    {
+      "id": "free-time-clock-app-lp",
+      "path": "/free-time-clock-app-lp",
+      "url": "https://www.joinhomebase.com/free-time-clock-app-lp",
+      "label": "Free time clock app LP",
+      "group": "Time tracking",
+      "priority": 3,
+      "tags": ["product", "landing-page"]
+    },
+    {
+      "id": "free-clock-in-out-app-lp",
+      "path": "/free-clock-in-out-app-lp",
+      "url": "https://www.joinhomebase.com/free-clock-in-out-app-lp",
+      "label": "Free clock in/out app LP",
+      "group": "Time tracking",
+      "priority": 3,
+      "tags": ["product", "landing-page"]
+    },
+    {
+      "id": "free-timesheets-app-lp",
+      "path": "/free-timesheets-app-lp",
+      "url": "https://www.joinhomebase.com/free-timesheets-app-lp",
+      "label": "Free timesheets app LP",
+      "group": "Time tracking",
+      "priority": 3,
+      "tags": ["product", "landing-page"]
+    },
+    {
+      "id": "free-time-clock",
+      "path": "/free-time-clock",
+      "url": "https://www.joinhomebase.com/free-time-clock",
+      "label": "Free time clock",
+      "group": "Time tracking",
+      "priority": 3,
+      "tags": ["product"]
+    },
+    {
+      "id": "timesheets",
+      "path": "/timesheets",
+      "url": "https://www.joinhomebase.com/timesheets",
+      "label": "Timesheets",
+      "group": "Time tracking",
+      "priority": 2,
+      "tags": ["product"]
+    },
+    {
+      "id": "time-clock",
+      "path": "/time-clock",
+      "url": "https://www.joinhomebase.com/time-clock",
+      "label": "Time clock",
+      "group": "Time tracking",
+      "priority": 2,
+      "tags": ["product"]
+    },
+    {
+      "id": "team-management-app",
+      "path": "/team-management-app",
+      "url": "https://www.joinhomebase.com/team-management-app",
+      "label": "Team management app",
+      "group": "Team operations",
+      "priority": 3,
+      "tags": ["product", "app"]
+    },
+    {
+      "id": "app",
+      "path": "/app",
+      "url": "https://www.joinhomebase.com/app",
+      "label": "App",
+      "group": "Team operations",
+      "priority": 3,
+      "tags": ["product", "app"]
+    },
+    {
+      "id": "hr-compliance",
+      "path": "/hr-compliance",
+      "url": "https://www.joinhomebase.com/hr-compliance",
+      "label": "HR compliance",
+      "group": "Team operations",
+      "priority": 3,
+      "tags": ["product"]
+    },
+    {
+      "id": "hiring-and-onboarding",
+      "path": "/hiring-and-onboarding",
+      "url": "https://www.joinhomebase.com/hiring-and-onboarding",
+      "label": "Hiring and onboarding",
+      "group": "Team operations",
+      "priority": 3,
+      "tags": ["product"]
+    },
+    {
+      "id": "restaurants",
+      "path": "/restaurants",
+      "url": "https://www.joinhomebase.com/restaurants",
+      "label": "Restaurants",
+      "group": "Industry",
+      "priority": 3,
+      "tags": ["industry"]
+    },
+    {
+      "id": "blog",
+      "path": "/blog",
+      "url": "https://www.joinhomebase.com/blog",
+      "label": "Blog index",
+      "group": "Blog",
+      "priority": 1,
+      "tags": ["blog", "audit-scope"]
+    },
+    {
+      "id": "blog-is-overtime-taxed-more",
+      "path": "/blog/is-overtime-taxed-more",
+      "url": "https://www.joinhomebase.com/blog/is-overtime-taxed-more",
+      "label": "Is overtime taxed more",
+      "group": "Blog posts",
+      "priority": 2,
+      "tags": ["blog", "audit-scope"]
+    },
+    {
+      "id": "blog-time-card-conversion-how-to-convert-time-to-decimal",
+      "path": "/blog/time-card-conversion-how-to-convert-time-to-decimal",
+      "url": "https://www.joinhomebase.com/blog/time-card-conversion-how-to-convert-time-to-decimal",
+      "label": "Time card conversion",
+      "group": "Blog posts",
+      "priority": 2,
+      "tags": ["blog", "audit-scope"]
+    },
+    {
+      "id": "blog-schedule-maker",
+      "path": "/blog/schedule-maker",
+      "url": "https://www.joinhomebase.com/blog/schedule-maker",
+      "label": "Schedule maker",
+      "group": "Blog posts",
+      "priority": 2,
+      "tags": ["blog", "audit-scope"]
+    },
+    {
+      "id": "blog-category-manage-a-business",
+      "path": "/blog-category/manage-a-business",
+      "url": "https://www.joinhomebase.com/blog-category/manage-a-business",
+      "label": "Manage a business category",
+      "group": "Blog taxonomy",
+      "priority": 2,
+      "tags": ["blog", "category", "audit-scope"]
+    },
+    {
+      "id": "blog-author-homebase-team",
+      "path": "/blog-author/homebase-team",
+      "url": "https://www.joinhomebase.com/blog-author/homebase-team",
+      "label": "Homebase Team author",
+      "group": "Blog taxonomy",
+      "priority": 2,
+      "tags": ["blog", "author", "audit-scope"]
+    }
+  ]
+}

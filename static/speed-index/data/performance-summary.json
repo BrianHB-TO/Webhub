@@ -1,0 +1,38 @@
+{
+  "meta": {
+    "generatedAt": "2026-05-29T00:00:00Z",
+    "origin": "https://www.joinhomebase.com",
+    "watchlistCount": 0,
+    "devices": ["mobile", "desktop"],
+    "sources": [],
+    "thresholds": {},
+    "latestLabRunId": null,
+    "lighthouseBaselineRunId": null,
+    "latestCruxCollectionPeriod": null
+  },
+  "overview": {
+    "originField": null,
+    "fieldGapCount": 0,
+    "labRegressionCount": 0,
+    "labRunCount": 0,
+    "cruxRecordCount": 0,
+    "fieldGaps": [],
+    "regressions": []
+  },
+  "baselines": [],
+  "insights": {
+    "fixQueue": [],
+    "hostRollups": [],
+    "resourceRollups": [],
+    "opportunityRollups": [],
+    "scriptRollups": [],
+    "templateRollups": []
+  },
+  "runs": {
+    "lab": []
+  },
+  "pages": [],
+  "trends": {
+    "origin": []
+  }
+}

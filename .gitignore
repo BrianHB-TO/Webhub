@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.env
+venv/
+node_modules/
+.databricks/
+.pytest_cache/
+report-data.json
+comments.json
+2026-05-29-performance-dashboard-handoff/
+local/data-grail-dashboard/
+local/speed-index/data/raw/
+local/speed-index/node_modules/

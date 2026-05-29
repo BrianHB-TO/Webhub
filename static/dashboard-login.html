@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WebHub - Dashboard Access</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+  :root {
+    --bg: #F6F6F6; --surface: #FFFFFF; --surface2: #F3EFFF;
+    --text: #1E0B3A; --text-muted: #6B5A8A; --accent: #7E3DD4;
+    --red: #C438A3;
+    --accent-glow: rgba(126, 61, 212, 0.15);
+    --ease-out: cubic-bezier(0.33, 1, 0.68, 1);
+    --duration-fast: 150ms;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg); color: var(--text); min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .login-card {
+    background: var(--surface); border-radius: 20px; padding: 40px;
+    box-shadow: 0 8px 40px rgba(30,11,58,0.1); border: 1px solid #E7DFFF;
+    width: 100%; max-width: 400px; text-align: center;
+  }
+  .login-logo {
+    width: 56px; height: 56px; border-radius: 14px;
+    background: #7E3DD4;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px;
+    box-shadow: 0 4px 20px var(--accent-glow);
+  }
+  h1 {
+    font-size: 1.3rem; font-weight: 700; margin-bottom: 4px;
+    color: var(--text);
+  }
+  .subtitle { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 28px; }
+  input[type="password"] {
+    width: 100%; padding: 12px 18px; border: 1px solid #E7DFFF;
+    border-radius: 100px; font-size: 0.95rem; font-family: 'Plus Jakarta Sans', sans-serif;
+    outline: none; transition: border-color 0.15s; color: var(--text);
+  }
+  input[type="password"]:focus { border-color: var(--accent); }
+  input[type="password"].error { border-color: var(--red); }
+  .btn {
+    width: 100%; padding: 12px; border: none; border-radius: 100px;
+    background: #7E3DD4; color: #FFFFFF;
+    font-size: 0.95rem; font-weight: 700; cursor: pointer;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    margin-top: 14px; transition: transform var(--duration-fast) var(--ease-out), filter var(--duration-fast) var(--ease-out);
+  }
+  .btn:hover { filter: brightness(1.15); transform: translateY(-1px); }
+  .btn:active { transform: scale(0.97); filter: none; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; filter: none; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+  .error-msg { color: var(--red); font-size: 0.82rem; margin-top: 10px; font-weight: 600; display: none; }
+  .back-link { display: inline-block; margin-top: 16px; color: var(--text-muted); font-size: 0.82rem; text-decoration: none; }
+  .back-link:hover { color: var(--accent); }
+
+  /* Premium Workbench reskin */
+  :root {
+    --bg: oklch(0.975 0.008 305);
+    --surface: oklch(0.998 0.004 305);
+    --surface2: oklch(0.957 0.018 305);
+    --text: oklch(0.19 0.055 300);
+    --text-muted: oklch(0.48 0.05 300);
+    --text-soft: oklch(0.62 0.038 300);
+    --accent: oklch(0.49 0.19 300);
+    --accent-strong: oklch(0.38 0.16 300);
+    --accent-soft: oklch(0.93 0.042 300);
+    --red: oklch(0.52 0.17 345);
+    --border: oklch(0.88 0.025 305);
+    --border-strong: oklch(0.78 0.045 305);
+    --shadow: 0 18px 48px rgba(33, 13, 61, 0.1);
+    --accent-glow: color-mix(in oklch, var(--accent) 18%, transparent);
+  }
+  body {
+    background:
+      radial-gradient(circle at 50% 0%, color-mix(in oklch, var(--accent-soft) 70%, transparent), transparent 42%),
+      linear-gradient(180deg, oklch(0.988 0.008 305), var(--bg) 60%);
+    padding: 20px;
+  }
+  .login-card {
+    max-width: 410px; border-radius: 8px; padding: 34px;
+    border-color: var(--border); box-shadow: var(--shadow);
+    text-align: left;
+  }
+  .login-logo {
+    width: 46px; height: 46px; border-radius: 8px; margin: 0 0 18px;
+    background: var(--accent); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
+  }
+  h1 { font-size: 1.35rem; font-weight: 850; letter-spacing: 0; line-height: 1.15; }
+  .subtitle { color: var(--text-muted); line-height: 1.55; margin-bottom: 22px; }
+  input[type="password"] {
+    border-radius: 8px; border-color: var(--border); min-height: 44px;
+    font-weight: 650; color: var(--text);
+  }
+  input[type="password"]:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in oklch, var(--accent) 18%, transparent);
+  }
+  .btn {
+    border-radius: 999px; background: var(--accent); font-weight: 850;
+    transition: transform var(--duration-fast) var(--ease-out), background var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
+  }
+  .btn:hover {
+    background: var(--accent-strong); filter: none;
+    box-shadow: 0 8px 20px color-mix(in oklch, var(--accent) 20%, transparent);
+  }
+  .back-link { color: var(--text-soft); font-weight: 800; }
+  .back-link:hover { color: var(--accent-strong); }
+  .app-credit { margin-top: 18px; text-align:center; font-size: 0.74rem; color: var(--text-soft); font-weight: 700; }
+  .app-credit strong { color: var(--accent-strong); font-weight: 850; }
+</style>
+</head>
+<body>
+
+<div class="login-card">
+  <div class="login-logo">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M3 3h8v8H3zm10 0h8v8h-8zM3 13h8v8H3zm10 0h8v8h-8z"/></svg>
+  </div>
+  <h1>Dashboard Access</h1>
+  <p class="subtitle">Web team only. Enter the dashboard password.</p>
+
+  <form id="loginForm" onsubmit="handleLogin(event)">
+    <input type="password" id="passwordInput" placeholder="Dashboard password" autocomplete="off" autofocus>
+    <button type="submit" class="btn" id="loginBtn">Access Dashboard</button>
+  </form>
+  <p class="error-msg" id="errorMsg">Incorrect password. Try again.</p>
+  <a href="/requests" class="back-link">Back to Requests</a>
+  <p class="app-credit">Built with <strong>Claude Code + Codex</strong></p>
+</div>
+
+<script>
+function handleLogin(e) {
+  e.preventDefault();
+  var pw = document.getElementById("passwordInput");
+  var btn = document.getElementById("loginBtn");
+  var err = document.getElementById("errorMsg");
+
+  if (!pw.value.trim()) { pw.classList.add("error"); return; }
+
+  btn.disabled = true;
+  btn.textContent = "Verifying...";
+  err.style.display = "none";
+  pw.classList.remove("error");
+
+  fetch("/api/auth", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password: pw.value, scope: "dashboard" })
+  })
+  .then(function(res) {
+    if (res.ok) {
+      window.location.href = "/dashboard";
+    } else {
+      pw.classList.add("error");
+      err.style.display = "block";
+      btn.disabled = false;
+      btn.textContent = "Access Dashboard";
+      pw.value = "";
+      pw.focus();
+    }
+  })
+  .catch(function() {
+    err.textContent = "Connection error. Try again.";
+    err.style.display = "block";
+    btn.disabled = false;
+    btn.textContent = "Access Dashboard";
+  });
+}
+</script>
+
+</body>
+</html>

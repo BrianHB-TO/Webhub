@@ -1,0 +1,28 @@
+{
+  "name": "web-performance-monitor",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Local CrUX and Lighthouse performance monitor for joinhomebase.com watchlist URLs.",
+  "scripts": {
+    "collect:crux": "node scripts/collect-crux.mjs",
+    "collect:lighthouse": "node scripts/collect-lighthouse.mjs",
+    "collect:pagespeed": "node scripts/collect-pagespeed.mjs",
+    "collect": "node scripts/collect.mjs",
+    "normalize": "node scripts/normalize.mjs",
+    "publish:webhub": "SPEED_INDEX_SUMMARY_PATH=../../static/speed-index/data/performance-summary.json node scripts/normalize.mjs",
+    "collect:webhub": "SPEED_INDEX_SUMMARY_PATH=../../static/speed-index/data/performance-summary.json LIGHTHOUSE_RUNS=10 PERF_DEVICES=mobile,desktop node scripts/collect-lighthouse.mjs",
+    "collect:pagespeed:webhub": "SPEED_INDEX_SUMMARY_PATH=../../static/speed-index/data/performance-summary.json PAGESPEED_RUNS=3 PERF_DEVICES=mobile,desktop node scripts/collect-pagespeed.mjs",
+    "migrate:lakebase": "python3 scripts/migrate-lakebase.py",
+    "collect:pagespeed:lakebase": "python3 scripts/collect-pagespeed-lakebase.py",
+    "serve": "node scripts/serve.mjs",
+    "smoke:lighthouse": "LIGHTHOUSE_RUNS=1 PERF_URL_LIMIT=1 PERF_DEVICES=mobile node scripts/collect-lighthouse.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "chrome-launcher": "^1.2.0",
+    "lighthouse": "^13.3.0"
+  }
+}

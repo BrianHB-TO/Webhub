@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Web Speed Index</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="stylesheet" href="src/speed-index.css">
+  </head>
+  <body>
+    <nav class="top-nav">
+      <div class="nav-logo">
+        <div class="nav-logo-badge" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M3 3h8v8H3zm10 0h8v8h-8zM3 13h8v8H3zm10 0h8v8h-8z"/></svg>
+        </div>
+        <span>WebHub</span>
+      </div>
+      <div class="nav-links">
+        <a href="/requests" class="nav-link">Requests</a>
+        <a href="/progress" class="nav-link">In Progress</a>
+        <a href="/dashboard" class="nav-link">Dashboard</a>
+        <a href="/consent" class="nav-link">Consent Metrics</a>
+        <a href="/speed-index" class="nav-link active">Speed Index</a>
+      </div>
+    </nav>
+    <div id="app" class="speed-app">
+      <main class="empty-state">Loading dashboard data</main>
+    </div>
+    <script type="module" src="src/speed-index.js"></script>
+  </body>
+</html>

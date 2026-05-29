@@ -1,0 +1,1644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WebHub - Create a Request</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+  :root {
+    --bg: #F6F6F6; --surface: #FFFFFF; --surface2: #F3EFFF;
+    --text: #1E0B3A; --text-muted: #6B5A8A; --accent: #7E3DD4;
+    --green: #8FA800; --red: #C438A3;
+    --gradient-ai: linear-gradient(135deg, #1E0B3A, #7E3DD4, #E55CCD, #E0FF00);
+    --gradient-purple: linear-gradient(135deg, #1E0B3A, #7E3DD4, #D5C7FF);
+    --gradient-light: linear-gradient(135deg, #7E3DD4, #D5C7FF);
+    --accent-glow: rgba(126, 61, 212, 0.15);
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-out: cubic-bezier(0.33, 1, 0.68, 1);
+    --duration-fast: 150ms; --duration-normal: 250ms; --duration-slow: 400ms;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg); color: var(--text); min-height: 100vh;
+  }
+
+  /* Top Nav */
+  .top-nav {
+    background: #1E0B3A; padding: 12px 32px; display: flex;
+    align-items: center; justify-content: space-between;
+  }
+  .nav-logo {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .nav-links {
+    display: flex; gap: 8px;
+  }
+  .nav-link {
+    padding: 8px 18px; border-radius: 100px; font-size: 0.85rem;
+    font-weight: 600; text-decoration: none; transition: background 0.2s;
+    background: transparent; color: #B8A6F2;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+  .nav-link:hover {
+    background: rgba(126, 61, 212, 0.2); text-decoration: none; color: #B8A6F2;
+  }
+  .nav-link.active {
+    background: var(--accent); color: #FFFFFF;
+  }
+  .nav-link.active:hover {
+    background: var(--accent); color: #FFFFFF;
+  }
+
+  /* Main layout — single column */
+  .main-content {
+    padding: 32px 16px;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  /* Phase transitions */
+  .phase {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+  .phase.hidden {
+    opacity: 0;
+    transform: translateY(12px);
+    pointer-events: none;
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+  }
+  .phase.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Form card */
+  .form-card {
+    background: var(--surface); border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(30,11,58,0.08);
+    overflow: hidden;
+  }
+  .form-card-bar {
+    height: 2px;
+    background: var(--accent);
+  }
+  .form-card-body {
+    padding: 28px;
+  }
+  .form-title {
+    font-size: 1.6rem; font-weight: 700; margin-bottom: 4px;
+    color: var(--text);
+  }
+  .form-subtitle {
+    font-size: 0.9rem; color: var(--text-muted); margin-bottom: 28px;
+  }
+
+  /* Form fields */
+  .form-group {
+    display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px;
+  }
+  .form-group label {
+    font-size: 0.75rem; color: var(--text-muted); font-weight: 600;
+    letter-spacing: 0.3px; text-transform: uppercase;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .form-group label .required {
+    color: var(--red); margin-left: 2px;
+  }
+  .form-group input[type="text"],
+  .form-group textarea {
+    background: #FFFFFF; color: var(--text); border: 1px solid #E7DFFF;
+    border-radius: 100px; padding: 10px 16px; font-size: 0.85rem;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    width: 100%;
+  }
+  .form-group textarea {
+    border-radius: 14px; resize: vertical;
+  }
+  .form-group input[type="text"]:focus,
+  .form-group textarea:focus {
+    outline: none; border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+  .form-group input.error,
+  .form-group textarea.error {
+    border-color: var(--red);
+    box-shadow: 0 0 0 3px rgba(196, 56, 163, 0.15);
+  }
+  .error-msg {
+    font-size: 0.75rem; color: var(--red); font-weight: 500;
+    display: none; margin-top: 2px;
+  }
+  .error-msg.visible { display: block; }
+
+  /* Field tooltip */
+  .field-tip {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--surface2); color: var(--text-muted);
+    font-size: 0.7rem; cursor: help; position: relative;
+    font-weight: 700; flex-shrink: 0;
+  }
+  .field-tip:hover::after {
+    content: attr(title);
+    position: absolute; left: 50%; top: 100%;
+    transform: translateX(-50%);
+    margin-top: 6px;
+    background: var(--text); color: #FFFFFF;
+    font-size: 0.72rem; font-weight: 400;
+    padding: 6px 10px; border-radius: 8px;
+    white-space: normal; width: 220px;
+    z-index: 10; line-height: 1.4;
+    text-transform: none; letter-spacing: 0;
+    pointer-events: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  .field-tip:hover::before {
+    content: '';
+    position: absolute; left: 50%; top: 100%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-bottom-color: var(--text);
+    z-index: 11;
+  }
+
+  /* Upload area */
+  .upload-area {
+    border: 2px dashed #E7DFFF; border-radius: 14px; padding: 20px;
+    text-align: center; cursor: pointer; transition: all 0.15s;
+  }
+  .upload-area:hover { border-color: var(--accent); background: var(--surface2); }
+  .upload-area.dragover { border-color: var(--accent); background: var(--surface2); }
+  .upload-error {
+    font-size: 0.75rem; color: var(--red); font-weight: 500;
+    margin-top: 4px; display: none;
+  }
+  .upload-error.visible { display: block; }
+
+  /* CTA Button */
+  .refine-btn {
+    background: #7E3DD4; color: #FFF; border: none;
+    border-radius: 100px; padding: 12px 28px; font-weight: 700;
+    cursor: pointer; font-size: 0.9rem; font-family: 'Plus Jakarta Sans', sans-serif;
+    transition: transform var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out), filter var(--duration-fast) var(--ease-out);
+    width: 100%; margin-top: 6px;
+  }
+  .refine-btn:hover {
+    transform: translateY(-1px); box-shadow: 0 6px 20px var(--accent-glow);
+    filter: brightness(1.15);
+  }
+  .refine-btn:active { transform: scale(0.97); box-shadow: none; filter: none; }
+  .refine-btn:disabled {
+    opacity: 0.6; cursor: not-allowed; transform: none;
+    filter: none; box-shadow: none;
+  }
+  .refine-helper {
+    font-size: 0.78rem; color: var(--text-muted); text-align: center;
+    margin-top: 10px; line-height: 1.5;
+  }
+
+  /* ===== PHASE 2 ===== */
+
+  /* Summary bar */
+  .summary-bar {
+    background: var(--surface); border-radius: 12px; padding: 14px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 2px 12px rgba(30,11,58,0.06);
+    border-bottom: 1px solid #E7DFFF;
+    margin-bottom: 20px;
+  }
+  .summary-bar-title {
+    font-size: 0.95rem; font-weight: 700; color: var(--text);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    max-width: 80%;
+  }
+  .summary-bar-edit {
+    font-size: 0.8rem; font-weight: 600; color: var(--accent);
+    cursor: pointer; text-decoration: none; flex-shrink: 0;
+  }
+  .summary-bar-edit:hover { text-decoration: underline; }
+
+  /* Chat section */
+  .chat-section {
+    background: var(--surface2); border-radius: 16px; overflow: hidden;
+    display: flex; flex-direction: column;
+    border: 1px solid #E7DFFF;
+    transition: max-height 0.4s ease, opacity 0.3s ease, margin 0.3s ease;
+  }
+  .chat-section.collapsed {
+    max-height: 0; opacity: 0; margin: 0; border: none; overflow: hidden;
+  }
+  .reopen-chat-btn {
+    display: none; width: 100%; padding: 10px; border-radius: 100px;
+    background: transparent; border: 1px solid #E7DFFF; color: var(--text-muted);
+    font-size: 0.85rem; font-weight: 600; cursor: pointer;
+    font-family: 'Plus Jakarta Sans', sans-serif; transition: all 0.15s;
+    margin-bottom: 16px; text-align: center;
+  }
+  .reopen-chat-btn:hover { background: var(--surface2); color: var(--accent); border-color: var(--accent); }
+  .reopen-chat-btn.visible { display: block; }
+  .chat-header {
+    padding: 16px 20px; display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid #E7DFFF;
+  }
+  .chat-header-icon {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: var(--gradient-ai);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+  }
+  .chat-header-title {
+    font-size: 0.9rem; font-weight: 700; color: var(--text);
+  }
+  .chat-messages {
+    flex: 1; padding: 20px; overflow-y: auto; display: flex;
+    flex-direction: column; gap: 16px; max-height: 420px;
+    min-height: 200px;
+  }
+  .chat-message {
+    max-width: 88%; font-size: 0.85rem; line-height: 1.6;
+    padding: 12px 16px; border-radius: 14px; word-wrap: break-word;
+  }
+  .chat-message.assistant {
+    background: var(--surface); color: var(--text);
+    align-self: flex-start; border-bottom-left-radius: 4px;
+    border: 1px solid #E7DFFF;
+  }
+  .chat-message.user {
+    background: var(--accent); color: #FFFFFF;
+    align-self: flex-end; border-bottom-right-radius: 4px;
+  }
+  .chat-message p { margin-bottom: 8px; }
+  .chat-message p:last-child { margin-bottom: 0; }
+  .chat-input-area {
+    padding: 16px; border-top: 1px solid #E7DFFF;
+    display: flex; gap: 10px;
+  }
+  .chat-input {
+    flex: 1; background: var(--surface); border: 1px solid #E7DFFF;
+    border-radius: 14px; padding: 10px 16px; color: var(--text);
+    font-size: 0.85rem; font-family: 'Plus Jakarta Sans', sans-serif;
+    resize: none; min-height: 40px; max-height: 120px; overflow-y: auto;
+    line-height: 1.4;
+  }
+  .chat-input:focus {
+    outline: none; border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+  .chat-input::placeholder { color: var(--text-muted); }
+  .chat-send-btn {
+    background: #7E3DD4; color: #FFFFFF; border: none;
+    border-radius: 100px; padding: 10px 20px; font-weight: 700;
+    cursor: pointer; font-size: 0.85rem; font-family: 'Plus Jakarta Sans', sans-serif;
+    transition: transform var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out); white-space: nowrap;
+  }
+  .chat-send-btn:hover {
+    filter: brightness(1.15); transform: translateY(-1px);
+    box-shadow: 0 4px 16px var(--accent-glow);
+  }
+  .chat-send-btn:active { transform: scale(0.97); box-shadow: none; }
+  .chat-send-btn:disabled {
+    opacity: 0.5; cursor: not-allowed; transform: none;
+    filter: none; box-shadow: none;
+  }
+
+  /* Suggestion chips */
+  .suggestion-chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 8px 14px; }
+  .suggestion-chip {
+    padding: 6px 14px; border-radius: 100px; border: 1px solid #E7DFFF;
+    background: var(--surface); color: var(--text-muted); font-size: 0.8rem; cursor: pointer;
+    font-family: 'Plus Jakarta Sans', sans-serif; transition: all 0.15s;
+    text-align: left;
+  }
+  .suggestion-chip:hover { background: var(--accent); color: #FFFFFF; border-color: var(--accent); }
+
+  /* Ticket preview */
+  .preview-section {
+    background: var(--surface); border-radius: 16px; padding: 24px;
+    box-shadow: 0 4px 24px rgba(30,11,58,0.08);
+    border: 1px solid #E7DFFF;
+    margin-top: 20px;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+  .preview-section.hidden {
+    display: none;
+  }
+  .preview-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .preview-title {
+    font-size: 1rem; font-weight: 700; color: #1E0B3A;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .preview-actions {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .edit-toggle {
+    font-size: 0.78rem; font-weight: 600; color: var(--accent);
+    cursor: pointer; background: none; border: none;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    text-decoration: underline; padding: 4px 8px;
+  }
+  .copy-btn {
+    background: var(--surface2); color: var(--accent); border: 1px solid #E7DFFF;
+    border-radius: 100px; padding: 8px 18px; font-weight: 700;
+    cursor: pointer; font-size: 0.8rem; font-family: 'Plus Jakarta Sans', sans-serif;
+    transition: all 0.2s;
+  }
+  .copy-btn:hover {
+    background: var(--accent); color: #FFFFFF; border-color: var(--accent);
+    box-shadow: 0 4px 16px var(--accent-glow);
+  }
+  .copy-btn.copied {
+    background: var(--green); color: #FFFFFF; border-color: var(--green);
+  }
+  .preview-rendered {
+    font-size: 0.85rem; line-height: 1.7; color: var(--text);
+  }
+  .preview-rendered h3 {
+    font-size: 0.95rem; font-weight: 700; color: var(--accent);
+    margin: 16px 0 8px;
+  }
+  .preview-rendered h3:first-child { margin-top: 0; }
+  .preview-rendered p { margin-bottom: 8px; }
+  .preview-rendered .ac-item {
+    display: flex; align-items: flex-start; gap: 8px; margin-bottom: 6px;
+    padding-left: 4px;
+  }
+  .preview-rendered .ac-item input[type="checkbox"] {
+    margin-top: 4px; accent-color: var(--accent); flex-shrink: 0;
+  }
+  .preview-edit-area {
+    width: 100%; min-height: 220px;
+    background: #FAFAFA; color: var(--text);
+    border: 1px solid #E7DFFF; border-radius: 14px;
+    padding: 14px; font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 0.85rem; line-height: 1.6; resize: vertical;
+    display: none;
+  }
+  .preview-edit-area:focus {
+    outline: none; border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+
+  /* Send to Jira button */
+  .jira-btn {
+    background: #7E3DD4; color: #FFFFFF; border: none;
+    border-radius: 100px; padding: 12px 24px; font-weight: 700;
+    font-size: 0.9rem; cursor: pointer; width: 100%; margin-top: 12px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    transition: transform var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out), filter var(--duration-fast) var(--ease-out);
+  }
+  .jira-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .jira-btn:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-1px); box-shadow: 0 6px 20px var(--accent-glow); }
+  .jira-btn:active:not(:disabled) { transform: scale(0.97); box-shadow: none; filter: none; }
+
+  .jira-link-container {
+    text-align: center; margin-top: 8px;
+  }
+
+  /* Success overlay */
+  .success-overlay {
+    text-align: center; padding: 40px 24px;
+    animation: successFadeIn 400ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes successFadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .success-checkmark {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: var(--green); color: #FFFFFF;
+    font-size: 1.8rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 16px;
+    animation: successPop 350ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes successPop {
+    0% { transform: scale(0.9); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .success-title {
+    font-size: 1.3rem; font-weight: 700; color: var(--text); margin-bottom: 6px;
+  }
+  .success-subtitle {
+    font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px;
+  }
+  .success-view-btn {
+    display: inline-block; padding: 10px 24px; border-radius: 100px;
+    background: var(--surface2); color: var(--accent); font-weight: 700;
+    font-size: 0.85rem; text-decoration: none; margin-bottom: 10px;
+    transition: background 150ms ease;
+  }
+  .success-view-btn:hover { background: #E7DFFF; text-decoration: none; color: var(--accent); }
+  .success-another-btn {
+    display: block; width: 100%; padding: 12px; border: 1px solid #E7DFFF;
+    border-radius: 100px; background: transparent; color: var(--text-muted);
+    font-weight: 600; font-size: 0.9rem; cursor: pointer;
+    font-family: 'Plus Jakarta Sans', sans-serif; margin-top: 10px;
+    transition: background 150ms ease, color 150ms ease;
+  }
+  .success-another-btn:hover { background: var(--surface2); color: var(--accent); }
+
+  /* Typing indicator */
+  .typing-indicator {
+    display: flex; gap: 4px; align-items: center;
+    padding: 12px 16px; align-self: flex-start;
+  }
+  .typing-indicator span {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent);
+    animation: typing 1.4s ease-in-out infinite;
+  }
+  .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes typing {
+    0%, 100% { opacity: 0.3; transform: translateY(0); }
+    50% { opacity: 1; transform: translateY(-3px); }
+  }
+
+  /* Responsive */
+  @media (max-width: 700px) {
+    .main-content { padding: 20px 12px; }
+    .top-nav { padding: 12px 20px; }
+    .chat-messages { max-height: 320px; }
+  }
+  @media (max-width: 500px) {
+    .top-nav { flex-direction: column; gap: 8px; padding: 12px 16px; }
+    .nav-links { width: 100%; justify-content: center; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  }
+
+  /* Premium Workbench reskin */
+  :root {
+    --bg: oklch(0.975 0.008 305);
+    --surface: oklch(0.998 0.004 305);
+    --surface2: oklch(0.957 0.018 305);
+    --surface-strong: oklch(0.935 0.032 305);
+    --text: oklch(0.19 0.055 300);
+    --text-muted: oklch(0.48 0.05 300);
+    --text-soft: oklch(0.62 0.038 300);
+    --accent: oklch(0.49 0.19 300);
+    --accent-strong: oklch(0.38 0.16 300);
+    --accent-soft: oklch(0.93 0.042 300);
+    --green: oklch(0.55 0.14 132);
+    --red: oklch(0.52 0.17 345);
+    --border: oklch(0.88 0.025 305);
+    --border-strong: oklch(0.78 0.045 305);
+    --shadow: 0 14px 40px rgba(33, 13, 61, 0.08);
+    --shadow-soft: 0 8px 24px rgba(33, 13, 61, 0.06);
+    --accent-glow: color-mix(in oklch, var(--accent) 18%, transparent);
+    --gradient-ai: linear-gradient(135deg, #1E0B3A, #7E3DD4, #D94BAF);
+    --gradient-purple: linear-gradient(135deg, #1E0B3A, #7E3DD4);
+    --gradient-light: linear-gradient(135deg, #7E3DD4, #B9A7F7);
+    --nav-h: 58px;
+  }
+  body {
+    background:
+      linear-gradient(180deg, oklch(0.988 0.008 305), var(--bg) 360px);
+    color: var(--text);
+    overflow-x: hidden;
+  }
+  .top-nav {
+    position: sticky; top: 0; z-index: 120;
+    height: var(--nav-h); padding: 10px 28px;
+    background: color-mix(in oklch, var(--text) 94%, var(--accent) 6%);
+    border-bottom: 1px solid color-mix(in oklch, var(--accent) 34%, transparent);
+    box-shadow: 0 10px 28px rgba(30, 11, 58, 0.16);
+  }
+  .nav-logo > div {
+    width: 34px !important; height: 34px !important; border-radius: 8px !important;
+    background: var(--accent) !important;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
+  }
+  .nav-logo span { font-size: 1rem !important; letter-spacing: 0; }
+  .nav-links {
+    gap: 4px; padding: 4px; border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 999px; background: rgba(255,255,255,0.06);
+    max-width: 100%;
+  }
+  .nav-link {
+    padding: 7px 14px; font-size: 0.82rem; font-weight: 800;
+    color: oklch(0.79 0.055 304); border-radius: 999px;
+  }
+  .nav-link:hover { background: rgba(255,255,255,0.09); color: oklch(0.96 0.015 305); }
+  .nav-link.active, .nav-link.active:hover {
+    background: var(--surface); color: var(--accent-strong);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.16);
+  }
+  .main-content {
+    width: min(1180px, calc(100vw - 40px));
+    max-width: none;
+    padding: 24px 0 32px;
+  }
+  .request-layout {
+    display: grid; grid-template-columns: minmax(230px, 0.72fr) minmax(480px, 1.28fr);
+    gap: 18px; align-items: start;
+  }
+  .request-context {
+    position: sticky; top: calc(var(--nav-h) + 22px);
+    background: color-mix(in oklch, var(--surface) 88%, var(--accent-soft) 12%);
+    border: 1px solid var(--border); border-radius: 8px;
+    box-shadow: var(--shadow-soft); padding: 18px;
+  }
+  .context-kicker {
+    font-size: 0.68rem; font-weight: 850; color: var(--accent-strong);
+    text-transform: uppercase; letter-spacing: 0; margin-bottom: 8px;
+  }
+  .request-context h2 { font-size: 1.05rem; line-height: 1.25; margin-bottom: 8px; }
+  .request-context p { color: var(--text-muted); font-size: 0.84rem; line-height: 1.65; margin-bottom: 14px; }
+  .context-list { display: grid; gap: 9px; }
+  .context-list > div {
+    display: grid; grid-template-columns: 28px 1fr; gap: 9px; align-items: start;
+    padding: 10px; border-radius: 8px; background: var(--surface);
+    border: 1px solid var(--border);
+  }
+  .context-list > div > div { min-width: 0; }
+  .context-list span {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--text); color: var(--surface); font-size: 0.78rem; font-weight: 850;
+  }
+  .context-list strong { display: block; font-size: 0.8rem; color: var(--text); margin-bottom: 2px; }
+  .context-list small { color: var(--text-soft); font-weight: 700; line-height: 1.4; }
+  .form-card, .summary-bar, .chat-section, .preview-section {
+    border-radius: 8px; border: 1px solid var(--border);
+    box-shadow: var(--shadow-soft); background: var(--surface);
+  }
+  .form-card { overflow: visible; }
+  .form-card-bar { height: 0; }
+  .form-card-body { padding: 24px; }
+  .form-title { font-size: 1.55rem; font-weight: 850; letter-spacing: 0; line-height: 1.15; }
+  .form-subtitle { color: var(--text-muted); margin-bottom: 22px; line-height: 1.55; }
+  .form-group { gap: 7px; margin-bottom: 16px; }
+  .form-group label {
+    color: var(--text-muted); font-weight: 850; font-size: 0.7rem;
+    letter-spacing: 0; text-transform: uppercase;
+  }
+  .field-helper {
+    color: var(--text-soft); font-size: 0.76rem; line-height: 1.45; margin-top: -1px;
+    font-weight: 650;
+  }
+  .field-tip {
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text-soft); font-size: 0.68rem;
+  }
+  .form-group input[type="text"],
+  .form-group textarea,
+  .chat-input,
+  .preview-edit-area {
+    border-radius: 8px; border-color: var(--border); background: var(--surface);
+    color: var(--text); font-weight: 600;
+  }
+  .form-group input[type="text"] { min-height: 40px; }
+  .form-group textarea { min-height: 124px; }
+  .form-group input[type="text"]:focus,
+  .form-group textarea:focus,
+  .chat-input:focus,
+  .preview-edit-area:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in oklch, var(--accent) 18%, transparent);
+  }
+  .upload-area {
+    border-radius: 8px; border-color: var(--border); background: var(--surface2);
+    padding: 18px; transition: border-color var(--duration-fast) var(--ease-out), background var(--duration-fast) var(--ease-out);
+  }
+  .upload-area:hover, .upload-area.dragover {
+    border-color: var(--accent); background: var(--accent-soft);
+  }
+  .refine-btn, .chat-send-btn, .jira-btn {
+    background: var(--accent); border-radius: 999px; font-weight: 850;
+    box-shadow: none;
+  }
+  .refine-btn:hover, .chat-send-btn:hover, .jira-btn:hover:not(:disabled) {
+    background: var(--accent-strong); filter: none;
+    box-shadow: 0 8px 20px color-mix(in oklch, var(--accent) 20%, transparent);
+  }
+  .refine-helper { color: var(--text-soft); font-size: 0.76rem; }
+  .summary-bar {
+    padding: 13px 16px; margin-bottom: 14px; border-bottom: 1px solid var(--border);
+  }
+  .summary-bar-edit, .edit-toggle { color: var(--accent-strong); font-weight: 850; }
+  .chat-section { background: var(--surface); }
+  .chat-header { border-bottom-color: var(--border); padding: 14px 16px; }
+  .chat-header-icon { background: var(--text); border-radius: 8px; }
+  .chat-header-title { font-weight: 850; }
+  .chat-messages { padding: 16px; gap: 12px; background: var(--surface2); }
+  .chat-message { border-radius: 8px; font-size: 0.84rem; }
+  .chat-message.assistant { border-color: var(--border); }
+  .chat-message.user { background: var(--accent); }
+  .chat-input-area { border-top-color: var(--border); padding: 12px; }
+  .suggestion-chips { padding: 0 16px 16px; }
+  .suggestion-chip {
+    border-radius: 999px; border-color: var(--border); font-weight: 800;
+    color: var(--text-muted);
+  }
+  .suggestion-chip:hover { background: var(--text); color: var(--surface); border-color: var(--text); }
+  .preview-section { padding: 20px; }
+  .preview-title { color: var(--text); font-weight: 850; }
+  .preview-rendered h3 { color: var(--accent-strong); }
+  .copy-btn, .reopen-chat-btn, .success-view-btn, .success-another-btn {
+    border-radius: 999px; border-color: var(--border); background: var(--surface);
+    color: var(--accent-strong); font-weight: 850;
+  }
+  .copy-btn:hover, .reopen-chat-btn:hover, .success-view-btn:hover, .success-another-btn:hover {
+    background: var(--accent-soft); color: var(--accent-strong); border-color: var(--border-strong);
+  }
+  .success-checkmark { background: var(--green); }
+  .app-credit { text-align:center; padding: 0 0 8px; font-size: 0.76rem; color: var(--text-soft); font-weight: 700; }
+  .app-credit strong { color: var(--accent-strong); font-weight: 850; }
+  @media (max-width: 900px) {
+    .main-content { width: calc(100vw - 24px); max-width: 680px; padding-top: 16px; }
+    .request-layout { grid-template-columns: 1fr; }
+    .request-context { position: static; }
+    .request-context, .form-card { min-width: 0; width: 100%; }
+    .request-context p, .form-subtitle, .field-helper, .context-list small { overflow-wrap: anywhere; }
+  }
+  @media (max-width: 500px) {
+    :root { --nav-h: auto; }
+    .top-nav { height: auto; }
+    .nav-links { display: grid; grid-template-columns: repeat(2, max-content); overflow-x: visible; flex-wrap: wrap; justify-content: center; justify-items: center; row-gap: 6px; }
+    .nav-link { flex: 0 0 auto; padding: 7px 10px; font-size: 0.8rem; }
+    .main-content { width: calc(100vw - 48px); margin-left: auto; margin-right: auto; }
+    .form-card-body, .preview-section { padding: 18px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <div class="nav-logo">
+    <div style="width:32px;height:32px;border-radius:10px;background:#7E3DD4;display:flex;align-items:center;justify-content:center;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M3 3h8v8H3zm10 0h8v8h-8zM3 13h8v8H3zm10 0h8v8h-8z"/></svg>
+    </div>
+    <span style="font-weight:700;font-size:1.1rem;color:#FFFFFF;">WebHub</span>
+  </div>
+  <div class="nav-links">
+    <a href="/requests" class="nav-link active">Requests</a>
+    <a href="/progress" class="nav-link">In Progress</a>
+    <a href="/dashboard" class="nav-link">Dashboard</a>
+    <a href="/consent" class="nav-link">Consent Metrics</a>
+    <a href="/speed-index" class="nav-link">Speed Index</a>
+  </div>
+</nav>
+
+<div class="main-content">
+
+  <!-- PHASE 1: Form -->
+  <div id="phase1" class="phase visible">
+    <div class="request-layout">
+      <aside class="request-context" aria-label="Request context">
+        <div class="context-kicker">Intake</div>
+        <h2>Get the web team the signal they need.</h2>
+        <p>Strong requests make the affected page, desired outcome, and decision context clear from the first pass.</p>
+        <div class="context-list">
+          <div><span>1</span><div><strong>Scope</strong><small>Page, component, or workflow.</small></div></div>
+          <div><span>2</span><div><strong>Outcome</strong><small>What should be true when it ships.</small></div></div>
+          <div><span>3</span><div><strong>Timing</strong><small>Campaign, launch, or priority context.</small></div></div>
+        </div>
+      </aside>
+    <div class="form-card">
+      <div class="form-card-bar"></div>
+      <div class="form-card-body">
+        <h1 class="form-title">Create a Web Request</h1>
+        <p class="form-subtitle">Tell us what you need. AI will help structure it into a ticket.</p>
+
+        <div class="form-group">
+          <label>Your Name <span class="required">*</span> <span class="field-tip" title="So the web team knows who submitted this request">?</span></label>
+          <input type="text" id="fieldName" placeholder="e.g. Sarah Chen">
+          <p class="field-helper">Used for Jira context and follow-up.</p>
+          <span class="error-msg" id="errorName">Name is required</span>
+        </div>
+
+        <div class="form-group">
+          <label>Title <span class="required">*</span> <span class="field-tip" title="A short summary of what you need">?</span></label>
+          <input type="text" id="fieldTitle" placeholder="e.g. Fix broken pricing link on /time-clock page">
+          <p class="field-helper">Lead with the page or component, then the change.</p>
+          <span class="error-msg" id="errorTitle">Title is required</span>
+        </div>
+
+        <div class="form-group">
+          <label>Description <span class="required">*</span> <span class="field-tip" title="Describe the problem or request in your own words. Don't worry about formatting — AI will help structure it.">?</span></label>
+          <textarea id="fieldDescription" rows="5" placeholder="What do you need and why? Include URLs of affected pages if relevant."></textarea>
+          <p class="field-helper">Include current state, expected outcome, deadline, and audience impact.</p>
+          <span class="error-msg" id="errorDescription">Description is required</span>
+        </div>
+
+        <div class="form-group">
+          <label>Page URL <span style="color:var(--text-muted);font-weight:400;text-transform:none;">(optional)</span> <span class="field-tip" title="If this is about a specific page on the site, paste the URL here">?</span></label>
+          <input type="text" id="fieldPageUrl" placeholder="https://www.joinhomebase.com/...">
+          <p class="field-helper">Add the most specific live URL you have.</p>
+        </div>
+
+        <div class="form-group">
+          <label>Figma / Design Link <span style="color:var(--text-muted);font-weight:400;text-transform:none;">(optional)</span> <span class="field-tip" title="If designs exist for this request, link the Figma file here">?</span></label>
+          <input type="text" id="fieldDesignLink" placeholder="https://figma.com/...">
+          <p class="field-helper">Use the source design link, not a screenshot, when possible.</p>
+        </div>
+
+        <div class="form-group">
+          <label>Attachments <span style="color:var(--text-muted);font-weight:400;text-transform:none;">(optional)</span> <span class="field-tip" title="Screenshots, mockups, or reference docs that help explain the request">?</span></label>
+          <div id="uploadArea" class="upload-area">
+            <input type="file" id="fileUpload" multiple accept="image/*,.pdf,.doc,.docx" style="display:none;">
+            <p style="color:var(--text-muted);font-size:0.85rem;">Click to upload or drag files here</p>
+            <p style="color:var(--text-muted);font-size:0.72rem;margin-top:4px;">Images, PDFs, or documents up to 10MB each</p>
+          </div>
+          <span class="upload-error" id="uploadError"></span>
+          <div id="fileList" style="margin-top:8px;"></div>
+          <p class="field-helper">Screenshots are most useful for bugs, layout issues, and visual QA.</p>
+        </div>
+
+        <button class="refine-btn" id="refineBtn" onclick="handleRefine()">Refine with AI</button>
+        <p class="refine-helper">AI will ask a few questions to fill in the details, then draft a structured ticket for the web team.</p>
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <!-- PHASE 2: Refinement -->
+  <div id="phase2" class="phase hidden">
+
+    <!-- Summary bar -->
+    <div class="summary-bar">
+      <span class="summary-bar-title" id="summaryTitle"></span>
+      <a class="summary-bar-edit" onclick="goBackToForm()">Edit</a>
+    </div>
+
+    <!-- Chat -->
+    <div class="chat-section">
+      <div class="chat-header">
+        <div class="chat-header-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="#FFFFFF">
+            <path d="M12 2L14.09 8.26L20 9.27L15.55 13.97L16.91 20L12 16.9L7.09 20L8.45 13.97L4 9.27L9.91 8.26L12 2Z"/>
+          </svg>
+        </div>
+        <span class="chat-header-title">AI Ticket Assistant</span>
+      </div>
+      <div class="chat-messages" id="chatMessages"></div>
+      <div class="chat-input-area">
+        <textarea class="chat-input" id="chatInput" rows="1" placeholder="Type a message..." onkeydown="handleChatKeydown(event)" oninput="autoResizeChatInput()"></textarea>
+        <button class="chat-send-btn" id="chatSendBtn" onclick="handleSendMessage()">Send</button>
+      </div>
+    </div>
+
+    <!-- Reopen chat button (shown when chat is collapsed) -->
+    <button class="reopen-chat-btn" id="reopenChatBtn" onclick="toggleChatSection()">Reopen AI Assistant</button>
+
+    <!-- Ticket Preview (hidden until ticket generated) -->
+    <div class="preview-section hidden" id="previewSection">
+      <div class="preview-header">
+        <div class="preview-title">Ticket Preview</div>
+        <div class="preview-actions">
+          <button class="edit-toggle" id="editToggle" onclick="togglePreviewEdit()">Edit</button>
+          <button class="copy-btn" id="copyBtn" onclick="handleCopy()">Copy to Clipboard</button>
+        </div>
+      </div>
+      <div class="preview-rendered" id="previewRendered"></div>
+      <textarea class="preview-edit-area" id="previewEditArea"></textarea>
+      <div class="jira-link-container" id="jiraLinkContainer"></div>
+      <button class="jira-btn" id="sendToJira" onclick="sendToJira()" disabled>Send to MW Board</button>
+
+      <!-- Success overlay -->
+      <div id="successOverlay" class="success-overlay" style="display:none;">
+        <div class="success-checkmark">&#10003;</div>
+        <div class="success-title">Ticket Created!</div>
+        <div class="success-subtitle" id="successDetail">Your request has been submitted to the MW board.</div>
+        <a id="successJiraLink" href="#" target="_blank" rel="noopener noreferrer" class="success-view-btn" style="display:none;">View in Jira</a>
+        <button class="success-another-btn" onclick="resetForNewRequest()">Submit Another Request</button>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<div class="app-credit">Built with <strong>Claude Code + Codex</strong></div>
+
+<script>
+var conversationMessages = [];
+var systemPrompt = '';
+var currentTicketMarkdown = '';
+var isProcessing = false;
+var uploadedFiles = [];
+var previewIsEditing = false;
+var MAX_FILE_SIZE = 10 * 1024 * 1024;
+var ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/svg+xml', 'image/bmp', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+var ALLOWED_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg', '.bmp', '.pdf', '.doc', '.docx'];
+
+function escapeHtml(str) {
+  var div = document.createElement('div');
+  div.appendChild(document.createTextNode(str));
+  return div.innerHTML;
+}
+
+function getFormData() {
+  return {
+    name: document.getElementById('fieldName').value.trim(),
+    title: document.getElementById('fieldTitle').value.trim(),
+    description: document.getElementById('fieldDescription').value.trim(),
+    pageUrl: document.getElementById('fieldPageUrl').value.trim(),
+    designLink: document.getElementById('fieldDesignLink').value.trim()
+  };
+}
+
+function validateForm() {
+  var valid = true;
+  var data = getFormData();
+
+  var nameInput = document.getElementById('fieldName');
+  var nameError = document.getElementById('errorName');
+  if (!data.name) {
+    nameInput.classList.add('error');
+    nameError.classList.add('visible');
+    valid = false;
+  } else {
+    nameInput.classList.remove('error');
+    nameError.classList.remove('visible');
+  }
+
+  var titleInput = document.getElementById('fieldTitle');
+  var titleError = document.getElementById('errorTitle');
+  if (!data.title) {
+    titleInput.classList.add('error');
+    titleError.classList.add('visible');
+    valid = false;
+  } else {
+    titleInput.classList.remove('error');
+    titleError.classList.remove('visible');
+  }
+
+  var descInput = document.getElementById('fieldDescription');
+  var descError = document.getElementById('errorDescription');
+  if (!data.description) {
+    descInput.classList.add('error');
+    descError.classList.add('visible');
+    valid = false;
+  } else {
+    descInput.classList.remove('error');
+    descError.classList.remove('visible');
+  }
+
+  return valid;
+}
+
+function isFileTypeAllowed(file) {
+  var name = file.name.toLowerCase();
+  for (var i = 0; i < ALLOWED_EXTENSIONS.length; i++) {
+    if (name.indexOf(ALLOWED_EXTENSIONS[i], name.length - ALLOWED_EXTENSIONS[i].length) !== -1) {
+      return true;
+    }
+  }
+  if (file.type) {
+    if (file.type.indexOf('image/') === 0) return true;
+    for (var j = 0; j < ALLOWED_TYPES.length; j++) {
+      if (file.type === ALLOWED_TYPES[j]) return true;
+    }
+  }
+  return false;
+}
+
+function showUploadError(msg) {
+  var el = document.getElementById('uploadError');
+  el.textContent = msg;
+  el.classList.add('visible');
+  setTimeout(function() {
+    el.classList.remove('visible');
+  }, 5000);
+}
+
+function validateAndAddFiles(files) {
+  var errors = [];
+  for (var i = 0; i < files.length; i++) {
+    var f = files[i];
+    if (f.size > MAX_FILE_SIZE) {
+      errors.push(escapeHtml(f.name) + ' exceeds the 10MB limit');
+      continue;
+    }
+    if (!isFileTypeAllowed(f)) {
+      errors.push(escapeHtml(f.name) + ' is not an allowed file type');
+      continue;
+    }
+    uploadedFiles.push(f);
+  }
+  if (errors.length > 0) {
+    showUploadError(errors.join('. '));
+  }
+  renderFileList();
+}
+
+function buildSystemPrompt(data) {
+  var prompt = 'You are a Jira ticket creation assistant for the Homebase MW (marketing web) project. You help people who may not be technical write clear, structured tickets.\n\n';
+  prompt += 'The user has submitted a request with:\n';
+  prompt += '- Requested by: ' + (data.name || 'N/A') + '\n';
+  prompt += '- Title: ' + (data.title || 'N/A') + '\n';
+  prompt += '- Description: ' + (data.description || 'N/A') + '\n';
+  prompt += '- Page URL: ' + (data.pageUrl || 'N/A') + '\n';
+  prompt += '- Designs: ' + (data.designLink || 'N/A') + '\n\n';
+  prompt += 'Your task:\n';
+  prompt += '1. Read their request carefully. Ask 1-2 specific clarifying questions about what is unclear \u2014 focus on problem scope, proposed solution, acceptance criteria, or timeline. Don\'t ask for everything at once.\n';
+  prompt += '2. Once you have enough context, draft the ticket in this exact format:\n\n';
+  prompt += '## Problem\n[What is broken or missing? Be specific.]\n\n';
+  prompt += '## What to do\n[Clear, actionable steps. Written for an engineer or Webflow developer.]\n\n';
+  prompt += '## Designs\n[Figma link if provided, or "N/A"]\n\n';
+  prompt += '## Acceptance Criteria\n- [ ] Criterion 1\n- [ ] Criterion 2\n- [ ] Criterion 3\n\n';
+  prompt += 'Rules:\n';
+  prompt += '- Plain, direct language. No filler.\n';
+  prompt += '- Acceptance criteria must be testable and specific.\n';
+  prompt += '- Write from the perspective of what needs to happen.\n';
+  prompt += '- When you output the final ticket, wrap it in <ticket> tags.\n';
+  prompt += '- At the end of every response, include a <suggestions> tag with a JSON array of 2-3 suggested replies the user can click to send as their response.\n';
+  prompt += '- IMPORTANT: Suggestions must be COMPLETE, READY-TO-SEND answers to your questions, NOT topic labels. The user will click one and it gets sent as their message verbatim.\n';
+  prompt += '- BAD suggestions: ["Explain the issue", "Add more details"] \u2014 these are just labels.\n';
+  prompt += '- GOOD suggestions: ["The page shows a 404 error when you click the pricing link", "It needs to match the Figma design exactly, especially the mobile layout"]\n';
+  prompt += '- If you have enough info to draft the ticket, suggest: ["That covers everything, draft the ticket now"]\n';
+  prompt += '- Keep suggestions concise but specific enough to be a real answer.';
+  return prompt;
+}
+
+/* ===== Phase transitions ===== */
+
+function goToPhase2() {
+  var data = getFormData();
+  document.getElementById('summaryTitle').textContent = data.title;
+
+  var phase1 = document.getElementById('phase1');
+  var phase2 = document.getElementById('phase2');
+
+  phase1.classList.remove('visible');
+  phase1.classList.add('hidden');
+
+  phase2.classList.remove('hidden');
+  phase2.classList.add('visible');
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function goBackToForm() {
+  var phase1 = document.getElementById('phase1');
+  var phase2 = document.getElementById('phase2');
+
+  phase2.classList.remove('visible');
+  phase2.classList.add('hidden');
+
+  phase1.classList.remove('hidden');
+  phase1.classList.add('visible');
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function collapseChatSection() {
+  var chat = document.querySelector('.chat-section');
+  var btn = document.getElementById('reopenChatBtn');
+  chat.classList.add('collapsed');
+  btn.classList.add('visible');
+}
+
+function toggleChatSection() {
+  var chat = document.querySelector('.chat-section');
+  var btn = document.getElementById('reopenChatBtn');
+  if (chat.classList.contains('collapsed')) {
+    chat.classList.remove('collapsed');
+    btn.classList.remove('visible');
+    // Scroll to chat
+    setTimeout(function() { chat.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
+  } else {
+    chat.classList.add('collapsed');
+    btn.classList.add('visible');
+  }
+}
+
+/* ===== Chat functions ===== */
+
+function addMessageToChat(role, content) {
+  var messagesEl = document.getElementById('chatMessages');
+  var msgDiv = document.createElement('div');
+  msgDiv.className = 'chat-message ' + role;
+
+  var formatted = formatMessageContent(content);
+  msgDiv.innerHTML = formatted;
+
+  messagesEl.appendChild(msgDiv);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function formatMessageContent(text) {
+  var cleaned = text.replace(/<ticket>/g, '').replace(/<\/ticket>/g, '');
+  cleaned = cleaned.replace(/<suggestions>[\s\S]*?<\/suggestions>/g, '');
+
+  cleaned = escapeHtml(cleaned);
+  cleaned = cleaned.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+  var lines = cleaned.split('\n');
+  var html = '';
+  var inList = false;
+
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i];
+
+    if (line.indexOf('## ') === 0) {
+      if (inList) { html += '</ul>'; inList = false; }
+      html += '<p><strong>' + line.substring(3) + '</strong></p>';
+    } else if (line.indexOf('- [ ] ') === 0) {
+      if (!inList) { html += '<ul style="list-style:none;padding-left:0;margin:4px 0;">'; inList = true; }
+      html += '<li style="margin-bottom:2px;">' + line + '</li>';
+    } else if (line.indexOf('- ') === 0) {
+      if (!inList) { html += '<ul style="margin:4px 0 4px 16px;">'; inList = true; }
+      html += '<li>' + line.substring(2) + '</li>';
+    } else if (line.trim() === '') {
+      if (inList) { html += '</ul>'; inList = false; }
+    } else {
+      if (inList) { html += '</ul>'; inList = false; }
+      html += '<p>' + line + '</p>';
+    }
+  }
+  if (inList) { html += '</ul>'; }
+
+  return html;
+}
+
+function removeSuggestions() {
+  var existing = document.querySelectorAll('.suggestion-chips');
+  for (var i = 0; i < existing.length; i++) {
+    existing[i].remove();
+  }
+}
+
+function renderSuggestions(suggestions) {
+  removeSuggestions();
+  var messagesEl = document.getElementById('chatMessages');
+  var chipsDiv = document.createElement('div');
+  chipsDiv.className = 'suggestion-chips';
+  for (var i = 0; i < suggestions.length; i++) {
+    var btn = document.createElement('button');
+    btn.className = 'suggestion-chip';
+    btn.textContent = suggestions[i];
+    btn.setAttribute('onclick', 'handleSuggestionClick(this)');
+    chipsDiv.appendChild(btn);
+  }
+  messagesEl.appendChild(chipsDiv);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function handleSuggestionClick(el) {
+  var text = el.textContent;
+  removeSuggestions();
+  var input = document.getElementById('chatInput');
+  input.value = text;
+  handleSendMessage();
+}
+
+function extractSuggestions(text) {
+  var startTag = '<suggestions>';
+  var endTag = '</suggestions>';
+  var startIdx = text.indexOf(startTag);
+  var endIdx = text.indexOf(endTag);
+  if (startIdx !== -1 && endIdx !== -1) {
+    var jsonStr = text.substring(startIdx + startTag.length, endIdx).trim();
+    try {
+      return JSON.parse(jsonStr);
+    } catch (e) {
+      return null;
+    }
+  }
+  return null;
+}
+
+function showTypingIndicator() {
+  var messagesEl = document.getElementById('chatMessages');
+  var indicator = document.createElement('div');
+  indicator.className = 'typing-indicator';
+  indicator.id = 'typingIndicator';
+  indicator.innerHTML = '<span></span><span></span><span></span>';
+  messagesEl.appendChild(indicator);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function removeTypingIndicator() {
+  var indicator = document.getElementById('typingIndicator');
+  if (indicator) { indicator.remove(); }
+}
+
+function extractTicket(text) {
+  var startTag = '<ticket>';
+  var endTag = '</ticket>';
+  var startIdx = text.indexOf(startTag);
+  var endIdx = text.indexOf(endTag);
+  if (startIdx !== -1 && endIdx !== -1) {
+    return text.substring(startIdx + startTag.length, endIdx).trim();
+  }
+  return null;
+}
+
+/* ===== Ticket preview ===== */
+
+function renderMarkdownToHtml(markdown) {
+  var escaped = escapeHtml(markdown);
+  var lines = escaped.split('\n');
+  var html = '';
+  var inList = false;
+
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i];
+
+    if (line.indexOf('## ') === 0) {
+      if (inList) { html += '</div>'; inList = false; }
+      html += '<h3>' + line.substring(3) + '</h3>';
+    } else if (line.indexOf('- [ ] ') === 0) {
+      if (!inList) { html += '<div>'; inList = true; }
+      html += '<div class="ac-item"><input type="checkbox" disabled><span>' + line.substring(6) + '</span></div>';
+    } else if (line.indexOf('- ') === 0) {
+      if (!inList) { html += '<div>'; inList = true; }
+      html += '<div class="ac-item"><span style="margin-right:4px;">&#8226;</span><span>' + line.substring(2) + '</span></div>';
+    } else if (line.trim() === '') {
+      if (inList) { html += '</div>'; inList = false; }
+    } else {
+      if (inList) { html += '</div>'; inList = false; }
+      html += '<p>' + line + '</p>';
+    }
+  }
+  if (inList) { html += '</div>'; }
+
+  return html;
+}
+
+function renderTicketPreview(markdown) {
+  currentTicketMarkdown = markdown;
+  var previewSection = document.getElementById('previewSection');
+  var rendered = document.getElementById('previewRendered');
+  var editArea = document.getElementById('previewEditArea');
+  var jiraBtn = document.getElementById('sendToJira');
+
+  previewSection.classList.remove('hidden');
+  rendered.innerHTML = renderMarkdownToHtml(markdown);
+  rendered.style.display = 'block';
+  editArea.value = markdown;
+  editArea.style.display = 'none';
+  previewIsEditing = false;
+  document.getElementById('editToggle').textContent = 'Edit';
+  jiraBtn.disabled = false;
+}
+
+function togglePreviewEdit() {
+  var rendered = document.getElementById('previewRendered');
+  var editArea = document.getElementById('previewEditArea');
+  var toggleBtn = document.getElementById('editToggle');
+
+  if (previewIsEditing) {
+    currentTicketMarkdown = editArea.value;
+    rendered.innerHTML = renderMarkdownToHtml(currentTicketMarkdown);
+    rendered.style.display = 'block';
+    editArea.style.display = 'none';
+    toggleBtn.textContent = 'Edit';
+    previewIsEditing = false;
+  } else {
+    editArea.value = currentTicketMarkdown;
+    rendered.style.display = 'none';
+    editArea.style.display = 'block';
+    editArea.focus();
+    toggleBtn.textContent = 'Preview';
+    previewIsEditing = true;
+  }
+}
+
+function handleCopy() {
+  var copyBtn = document.getElementById('copyBtn');
+  var editArea = document.getElementById('previewEditArea');
+  var textToCopy = editArea.value || currentTicketMarkdown;
+  if (!textToCopy) return;
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(textToCopy).then(function() {
+      copyBtn.textContent = 'Copied!';
+      copyBtn.classList.add('copied');
+      setTimeout(function() {
+        copyBtn.textContent = 'Copy to Clipboard';
+        copyBtn.classList.remove('copied');
+      }, 2000);
+    }).catch(function() {
+      fallbackCopy(textToCopy);
+    });
+  } else {
+    fallbackCopy(textToCopy);
+  }
+}
+
+function fallbackCopy(text) {
+  var copyBtn = document.getElementById('copyBtn');
+  var textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.style.position = 'fixed';
+  textarea.style.left = '-9999px';
+  document.body.appendChild(textarea);
+  textarea.select();
+  document.execCommand('copy');
+  document.body.removeChild(textarea);
+  copyBtn.textContent = 'Copied!';
+  copyBtn.classList.add('copied');
+  setTimeout(function() {
+    copyBtn.textContent = 'Copy to Clipboard';
+    copyBtn.classList.remove('copied');
+  }, 2000);
+}
+
+/* ===== API calls ===== */
+
+function setProcessing(state) {
+  isProcessing = state;
+  var sendBtn = document.getElementById('chatSendBtn');
+  sendBtn.disabled = state;
+}
+
+function sendToAPI(messages) {
+  setProcessing(true);
+  showTypingIndicator();
+  removeSuggestions();
+
+  var payload = {
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: 1000,
+    system: systemPrompt,
+    messages: messages
+  };
+
+  var controller = new AbortController();
+  var timeoutId = setTimeout(function() { controller.abort(); }, 30000);
+
+  fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+    signal: controller.signal
+  })
+  .then(function(res) {
+    clearTimeout(timeoutId);
+    if (!res.ok) {
+      throw new Error('API request failed with status ' + res.status);
+    }
+    return res.json();
+  })
+  .then(function(data) {
+    removeTypingIndicator();
+    setProcessing(false);
+
+    var assistantContent = '';
+    if (data.content && data.content.length > 0) {
+      for (var i = 0; i < data.content.length; i++) {
+        if (data.content[i].type === 'text') {
+          assistantContent += data.content[i].text;
+        }
+      }
+    } else if (data.message) {
+      assistantContent = data.message;
+    } else if (typeof data === 'string') {
+      assistantContent = data;
+    }
+
+    if (!assistantContent) {
+      assistantContent = 'I received your request but could not generate a response. Please try again.';
+    }
+
+    conversationMessages.push({ role: 'assistant', content: assistantContent });
+    addMessageToChat('assistant', assistantContent);
+
+    var ticket = extractTicket(assistantContent);
+    if (ticket) {
+      renderTicketPreview(ticket);
+      // Collapse chat after a brief delay so user sees the transition
+      setTimeout(function() { collapseChatSection(); }, 800);
+    }
+
+    var suggestions = extractSuggestions(assistantContent);
+    if (suggestions && suggestions.length > 0) {
+      renderSuggestions(suggestions);
+    }
+  })
+  .catch(function(err) {
+    clearTimeout(timeoutId);
+    removeTypingIndicator();
+    setProcessing(false);
+    var errMsg = err.name === 'AbortError' ? 'Request timed out. Please try again.' : 'Something went wrong: ' + err.message + '. Please try again.';
+    addMessageToChat('assistant', errMsg);
+  });
+}
+
+/* ===== Handlers ===== */
+
+function handleRefine() {
+  if (!validateForm()) return;
+
+  var data = getFormData();
+  systemPrompt = buildSystemPrompt(data);
+
+  // Clear previous chat
+  document.getElementById('chatMessages').innerHTML = '';
+
+  // Hide preview from any previous session
+  document.getElementById('previewSection').classList.add('hidden');
+  document.getElementById('sendToJira').disabled = true;
+
+  goToPhase2();
+
+  var userMessage = 'From: ' + data.name + '\n';
+  userMessage += 'Title: ' + data.title + '\n';
+  userMessage += 'Description: ' + data.description + '\n';
+  userMessage += 'Page URL: ' + (data.pageUrl || 'Not provided') + '\n';
+  userMessage += 'Designs: ' + (data.designLink || 'Not provided');
+
+  conversationMessages = [{ role: 'user', content: userMessage }];
+  addMessageToChat('user', userMessage);
+
+  sendToAPI(conversationMessages);
+}
+
+function handleSendMessage() {
+  var input = document.getElementById('chatInput');
+  var msg = input.value.trim();
+  if (!msg || isProcessing) return;
+
+  removeSuggestions();
+  input.value = '';
+  input.style.height = 'auto';
+  conversationMessages.push({ role: 'user', content: msg });
+  addMessageToChat('user', msg);
+
+  sendToAPI(conversationMessages);
+}
+
+function handleChatKeydown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    handleSendMessage();
+  }
+  // Shift+Enter naturally adds a newline in textarea — no action needed
+}
+
+function autoResizeChatInput() {
+  var el = document.getElementById('chatInput');
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+/* ===== Send to Jira ===== */
+
+function sendToJira() {
+  var editArea = document.getElementById('previewEditArea');
+  var ticketText = previewIsEditing ? editArea.value.trim() : currentTicketMarkdown;
+  if (!ticketText) return;
+
+  if (!window.confirm('Create this ticket in Jira?')) return;
+
+  var data = getFormData();
+  var jiraBtn = document.getElementById('sendToJira');
+  jiraBtn.disabled = true;
+  jiraBtn.textContent = 'Creating ticket...';
+
+  // Clear any previous Jira link
+  var linkContainer = document.getElementById('jiraLinkContainer');
+  linkContainer.innerHTML = '';
+
+  var fullDescription = 'Requested by: ' + data.name + '\n\n' + ticketText;
+
+  var payload = {
+    action: 'create',
+    summary: data.title || 'New Request',
+    description: fullDescription
+  };
+
+  var controller = new AbortController();
+  var timeoutId = setTimeout(function() { controller.abort(); }, 15000);
+
+  fetch('/api/jira', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+    signal: controller.signal
+  })
+  .then(function(res) {
+    clearTimeout(timeoutId);
+    if (!res.ok) {
+      throw new Error('Failed to create ticket (status ' + res.status + ')');
+    }
+    return res.json();
+  })
+  .then(function(result) {
+    var issueKey = result.key || result.issueKey || '';
+    var issueUrl = result.url || result.self || '';
+
+    if (uploadedFiles.length > 0) {
+      jiraBtn.textContent = 'Uploading attachments...';
+      return uploadAttachments(issueKey, 0).then(function() {
+        return { key: issueKey, url: issueUrl };
+      });
+    }
+    return { key: issueKey, url: issueUrl };
+  })
+  .then(function(info) {
+    // Hide the preview content and button, show success overlay
+    document.getElementById('previewRendered').style.display = 'none';
+    document.getElementById('previewEditArea').style.display = 'none';
+    document.querySelector('.preview-header').style.display = 'none';
+    jiraBtn.style.display = 'none';
+    linkContainer.style.display = 'none';
+
+    var overlay = document.getElementById('successOverlay');
+    overlay.style.display = 'block';
+    document.getElementById('successDetail').textContent = escapeHtml(info.key) + ' has been submitted to the MW board.';
+
+    if (info.url && info.url.indexOf('https://') === 0) {
+      var viewLink = document.getElementById('successJiraLink');
+      viewLink.href = info.url;
+      viewLink.textContent = 'View ' + escapeHtml(info.key) + ' in Jira';
+      viewLink.style.display = 'inline-block';
+    }
+  })
+  .catch(function(err) {
+    clearTimeout(timeoutId);
+    var errMsg = err.name === 'AbortError' ? 'Request timed out' : err.message;
+    jiraBtn.textContent = 'Failed: ' + errMsg;
+    jiraBtn.style.background = 'var(--red)';
+    setTimeout(function() {
+      jiraBtn.textContent = 'Send to MW Board';
+      jiraBtn.style.background = '';
+      jiraBtn.disabled = false;
+    }, 3000);
+  });
+}
+
+function resetForNewRequest() {
+  // Reset form fields
+  document.getElementById('fieldName').value = '';
+  document.getElementById('fieldTitle').value = '';
+  document.getElementById('fieldDescription').value = '';
+  document.getElementById('fieldPageUrl').value = '';
+  document.getElementById('fieldDesignLink').value = '';
+  document.getElementById('fileList').innerHTML = '';
+  uploadedFiles = [];
+
+  // Reset UI state
+  document.getElementById('successOverlay').style.display = 'none';
+  document.getElementById('previewRendered').style.display = '';
+  document.getElementById('previewEditArea').style.display = '';
+  document.querySelector('.preview-header').style.display = '';
+  var jiraBtn = document.getElementById('sendToJira');
+  jiraBtn.style.display = '';
+  jiraBtn.textContent = 'Send to MW Board';
+  jiraBtn.style.background = '';
+  jiraBtn.disabled = true;
+  document.getElementById('jiraLinkContainer').style.display = '';
+  document.getElementById('jiraLinkContainer').innerHTML = '';
+  document.getElementById('successJiraLink').style.display = 'none';
+
+  // Reset chat
+  conversationMessages = [];
+  currentTicketMarkdown = '';
+  previewIsEditing = false;
+
+  // Switch back to phase 1
+  document.getElementById('phase2').className = 'phase hidden';
+  document.getElementById('phase1').className = 'phase visible';
+
+  // Hide preview
+  var preview = document.getElementById('previewSection');
+  if (preview) preview.classList.add('hidden');
+
+  // Scroll to top
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function uploadAttachments(issueKey, index) {
+  if (index >= uploadedFiles.length) {
+    return Promise.resolve();
+  }
+
+  var file = uploadedFiles[index];
+  return new Promise(function(resolve, reject) {
+    var reader = new FileReader();
+    reader.onload = function() {
+      var base64 = reader.result.split(',')[1];
+      var payload = {
+        action: 'attach',
+        issueKey: issueKey,
+        fileName: file.name,
+        fileData: base64,
+        contentType: file.type || 'application/octet-stream'
+      };
+
+      var controller = new AbortController();
+      var timeoutId = setTimeout(function() { controller.abort(); }, 15000);
+
+      fetch('/api/jira', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        signal: controller.signal
+      })
+      .then(function(res) {
+        clearTimeout(timeoutId);
+        if (!res.ok) {
+          throw new Error('Failed to upload ' + file.name);
+        }
+        return res.json();
+      })
+      .then(function() {
+        resolve(uploadAttachments(issueKey, index + 1));
+      })
+      .catch(function(err) {
+        clearTimeout(timeoutId);
+        reject(err);
+      });
+    };
+    reader.onerror = function() {
+      reject(new Error('Failed to read ' + file.name));
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+/* ===== File upload handling ===== */
+
+var uploadArea = document.getElementById('uploadArea');
+var fileInput = document.getElementById('fileUpload');
+
+uploadArea.addEventListener('click', function() {
+  fileInput.click();
+});
+
+uploadArea.addEventListener('dragover', function(e) {
+  e.preventDefault();
+  uploadArea.classList.add('dragover');
+});
+
+uploadArea.addEventListener('dragleave', function(e) {
+  e.preventDefault();
+  uploadArea.classList.remove('dragover');
+});
+
+uploadArea.addEventListener('drop', function(e) {
+  e.preventDefault();
+  uploadArea.classList.remove('dragover');
+  var files = e.dataTransfer.files;
+  validateAndAddFiles(files);
+});
+
+fileInput.addEventListener('change', function() {
+  validateAndAddFiles(fileInput.files);
+  fileInput.value = '';
+});
+
+function renderFileList() {
+  var fileListEl = document.getElementById('fileList');
+  if (uploadedFiles.length === 0) {
+    fileListEl.innerHTML = '';
+    return;
+  }
+  var html = '';
+  for (var i = 0; i < uploadedFiles.length; i++) {
+    var size = uploadedFiles[i].size;
+    var sizeLabel = size < 1024 ? size + ' B' : size < 1048576 ? Math.round(size / 1024) + ' KB' : (size / 1048576).toFixed(1) + ' MB';
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 12px;background:var(--surface2);border-radius:100px;margin-bottom:4px;font-size:0.8rem;">';
+    html += '<span style="color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:70%;">' + escapeHtml(uploadedFiles[i].name) + '</span>';
+    html += '<span style="display:flex;align-items:center;gap:8px;">';
+    html += '<span style="color:var(--text-muted);font-size:0.72rem;">' + sizeLabel + '</span>';
+    html += '<button onclick="removeFile(' + i + ')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:0.9rem;font-weight:700;padding:0 4px;">&times;</button>';
+    html += '</span>';
+    html += '</div>';
+  }
+  fileListEl.innerHTML = html;
+}
+
+function removeFile(index) {
+  uploadedFiles.splice(index, 1);
+  renderFileList();
+}
+
+/* ===== Clear error styling on input ===== */
+
+document.getElementById('fieldTitle').addEventListener('input', function() {
+  this.classList.remove('error');
+  document.getElementById('errorTitle').classList.remove('visible');
+});
+document.getElementById('fieldDescription').addEventListener('input', function() {
+  this.classList.remove('error');
+  document.getElementById('errorDescription').classList.remove('visible');
+});
+
+/* ===== Remove suggestions when user types in chat ===== */
+
+document.getElementById('chatInput').addEventListener('input', function() {
+  if (this.value.trim()) {
+    removeSuggestions();
+  }
+});
+</script>
+
+</body>
+</html>

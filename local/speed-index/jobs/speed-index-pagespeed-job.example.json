@@ -1,0 +1,38 @@
+{
+  "name": "web-hub-speed-index-pagespeed-daily",
+  "max_concurrent_runs": 1,
+  "schedule": {
+    "quartz_cron_expression": "0 0 8 * * ?",
+    "timezone_id": "America/Toronto",
+    "pause_status": "PAUSED"
+  },
+  "tasks": [
+    {
+      "task_key": "collect_pagespeed_to_lakebase",
+      "description": "Collect PageSpeed Insights medians for the Web Hub Speed Index dashboard and store them in Lakebase.",
+      "spark_python_task": {
+        "python_file": "/Workspace/Repos/<workspace-user-or-service-principal>/web-hub/local/speed-index/scripts/collect-pagespeed-lakebase.py",
+        "parameters": [
+          "--runs",
+          "3",
+          "--devices",
+          "mobile,desktop",
+          "--api-key",
+          "{{secrets/<scope>/pagespeed-api-key}}",
+          "--pg-host",
+          "ep-divine-haze-d1jbjmnq.database.us-west-2.cloud.databricks.com",
+          "--pg-database",
+          "databricks_postgres",
+          "--pg-user",
+          "49b4af05-7301-4d07-9fb5-5ae469dcd68e",
+          "--pg-port",
+          "5432",
+          "--pg-sslmode",
+          "require",
+          "--endpoint-name",
+          "projects/web-hub-db/branches/production/endpoints/primary"
+        ]
+      }
+    }
+  ]
+}

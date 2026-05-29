@@ -1,0 +1,935 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>WebHub - Consent Metrics</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<script src="/vendor/consent/chart.umd.min.js"></script>
+<script src="/vendor/consent/d3.min.js"></script>
+<script src="/vendor/consent/topojson-client.min.js"></script>
+<style>
+  :root {
+    --bg: oklch(0.975 0.008 305);
+    --surface: oklch(0.998 0.004 305);
+    --surface2: oklch(0.957 0.018 305);
+    --surface-soft: oklch(0.982 0.012 305);
+    --text: oklch(0.19 0.055 300);
+    --text-muted: oklch(0.48 0.05 300);
+    --text-soft: oklch(0.62 0.038 300);
+    --accent: oklch(0.49 0.19 300);
+    --accent-strong: oklch(0.38 0.16 300);
+    --accent-soft: oklch(0.93 0.042 300);
+    --green: oklch(0.58 0.15 152);
+    --red: oklch(0.55 0.19 23);
+    --pink: oklch(0.56 0.18 345);
+    --amber: oklch(0.66 0.15 72);
+    --blue: oklch(0.56 0.16 250);
+    --border: oklch(0.88 0.025 305);
+    --border-strong: oklch(0.78 0.045 305);
+    --shadow: 0 14px 40px rgba(33, 13, 61, 0.08);
+    --shadow-soft: 0 8px 24px rgba(33, 13, 61, 0.06);
+    --nav-h: 58px;
+    --ease-out: cubic-bezier(0.33, 1, 0.68, 1);
+    --duration-fast: 150ms;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    background:
+      linear-gradient(180deg, oklch(0.988 0.008 305), var(--bg) 360px);
+    color: var(--text);
+    font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    overflow-x: hidden;
+  }
+  .top-nav {
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between; gap: 18px;
+    height: var(--nav-h); padding: 10px 28px;
+    background: color-mix(in oklch, var(--text) 94%, var(--accent) 6%);
+    border-bottom: 1px solid color-mix(in oklch, var(--accent) 34%, transparent);
+    box-shadow: 0 8px 24px rgba(33, 13, 61, 0.12);
+  }
+  .nav-logo { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .nav-logo-badge {
+    width: 32px; height: 32px; border-radius: 8px; flex: 0 0 auto;
+    background: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .nav-links {
+    display: flex; gap: 4px; align-items: center; min-width: 0;
+    padding: 4px; border: 1px solid rgba(255,255,255,0.12); border-radius: 999px;
+    background: rgba(255,255,255,0.06);
+  }
+  .nav-link {
+    color: oklch(0.79 0.055 304); text-decoration: none;
+    padding: 7px 14px; border-radius: 999px; font-size: 0.82rem; font-weight: 800;
+    white-space: nowrap; transition: background var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
+  }
+  .nav-link:hover { background: rgba(255,255,255,0.09); color: oklch(0.96 0.015 305); }
+  .nav-link.active, .nav-link.active:hover {
+    background: var(--surface); color: var(--accent-strong);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.16);
+  }
+  .page {
+    max-width: 1360px; margin: 0 auto; padding: 26px 24px 64px;
+    display: flex; flex-direction: column; gap: 18px;
+  }
+  .page-header {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 18px; align-items: end;
+    padding: 18px 0 4px;
+  }
+  h1 { margin: 0; font-size: 1.9rem; line-height: 1.08; font-weight: 850; letter-spacing: 0; }
+  .eyebrow { margin: 0 0 6px; color: var(--accent-strong); font-weight: 850; font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  .subline { margin: 8px 0 0; color: var(--text-muted); font-weight: 700; max-width: 72ch; }
+  .toolbar {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;
+    background: color-mix(in oklch, var(--surface) 90%, var(--accent-soft) 10%);
+    border: 1px solid var(--border); border-radius: 8px; padding: 12px;
+    box-shadow: var(--shadow-soft);
+  }
+  .toolbar-group { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; }
+  .segmented {
+    display: flex; gap: 4px; padding: 4px; border-radius: 999px;
+    background: var(--surface); border: 1px solid var(--border);
+  }
+  .segment {
+    border: 0; border-radius: 999px; background: transparent; color: var(--text-muted);
+    padding: 7px 11px; font: inherit; font-weight: 850; font-size: 0.78rem; cursor: pointer;
+  }
+  .segment.active { background: var(--text); color: var(--surface); }
+  input[type="date"] {
+    height: 34px; border: 1px solid var(--border); border-radius: 8px; padding: 0 9px;
+    color: var(--text); background: var(--surface); font: inherit; font-weight: 750;
+  }
+  .btn {
+    border: 1px solid transparent; border-radius: 999px; background: var(--accent);
+    color: var(--surface); min-height: 36px; padding: 8px 14px; font: inherit;
+    font-weight: 850; cursor: pointer;
+    transition: transform var(--duration-fast) var(--ease-out), background var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
+  }
+  .btn:hover { transform: translateY(-1px); background: var(--accent-strong); box-shadow: 0 8px 20px color-mix(in oklch, var(--accent) 20%, transparent); }
+  .btn.secondary { background: var(--surface); color: var(--accent-strong); border-color: var(--border); }
+  .btn.secondary:hover { background: var(--accent-soft); box-shadow: none; }
+  .btn:disabled { opacity: 0.48; cursor: not-allowed; transform: none; box-shadow: none; }
+  .freshness {
+    display: flex; flex-wrap: wrap; gap: 8px; color: var(--text-muted); font-size: 0.8rem; font-weight: 750;
+  }
+  .badge {
+    display: inline-flex; align-items: center; border-radius: 999px; padding: 4px 9px;
+    border: 1px solid var(--border); background: var(--surface); color: var(--text-muted);
+    font-weight: 850; font-size: 0.74rem;
+  }
+  .badge.warn { background: color-mix(in oklch, var(--amber) 14%, var(--surface)); color: oklch(0.42 0.12 72); border-color: color-mix(in oklch, var(--amber) 32%, var(--border)); }
+  .upload-tray {
+    display: none; grid-template-columns: minmax(280px, 1fr) minmax(300px, 420px); gap: 14px;
+    border: 1px solid var(--border); border-radius: 8px; background: var(--surface); padding: 14px;
+    box-shadow: var(--shadow-soft);
+  }
+  .upload-tray.open { display: grid; }
+  .dropzone {
+    min-height: 132px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+    border: 1px dashed var(--border-strong); border-radius: 8px; background: var(--surface-soft);
+    color: var(--text-muted); text-align: center; cursor: pointer; padding: 18px;
+    transition: background var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
+  }
+  .dropzone:hover, .dropzone.dragging { background: var(--accent-soft); border-color: var(--accent); }
+  .dropzone.closed { display: none; }
+  .dropzone input { display: none; }
+  .dropzone strong { color: var(--accent-strong); font-weight: 850; }
+  .upload-progress {
+    display: none; margin-top: 12px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--surface-soft); padding: 13px; gap: 10px;
+  }
+  .upload-progress.show { display: grid; }
+  .upload-progress-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .upload-progress-title { margin: 0; color: var(--text); font-weight: 850; font-size: 0.88rem; }
+  .upload-progress-copy { margin: 3px 0 0; color: var(--text-muted); font-weight: 750; font-size: 0.8rem; overflow-wrap: anywhere; }
+  .upload-progress-track {
+    height: 8px; overflow: hidden; border-radius: 999px; background: color-mix(in oklch, var(--accent-soft) 72%, var(--surface) 28%);
+  }
+  .upload-progress-fill {
+    width: 34%; height: 100%; border-radius: inherit; background: var(--accent);
+    transform-origin: left center;
+  }
+  .upload-progress.running .upload-progress-fill { animation: progressSweep 1.15s var(--ease-out) infinite; }
+  .upload-progress.ready .upload-progress-fill, .upload-progress.complete .upload-progress-fill { width: 100%; animation: none; background: var(--green); }
+  .upload-progress.error .upload-progress-fill { width: 100%; animation: none; background: var(--red); }
+  .btn.compact { min-height: 30px; padding: 6px 10px; font-size: 0.76rem; }
+  @keyframes progressSweep {
+    0% { transform: translateX(-105%) scaleX(0.55); }
+    45% { transform: translateX(55%) scaleX(1.15); }
+    100% { transform: translateX(295%) scaleX(0.55); }
+  }
+  .panel-title { margin: 0 0 4px; font-size: 0.95rem; font-weight: 850; }
+  .panel-copy { margin: 0; color: var(--text-muted); font-weight: 700; font-size: 0.84rem; }
+  .status { min-height: 20px; margin-top: 10px; color: var(--text-muted); font-size: 0.82rem; font-weight: 750; }
+  .status.ok { color: var(--green); }
+  .status.err { color: var(--red); }
+  .preview-box {
+    border: 1px solid var(--border); border-radius: 8px; padding: 12px; background: var(--surface-soft);
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .metric-grid { display: grid; grid-template-columns: repeat(4, minmax(160px, 1fr)); gap: 12px; }
+  .kpi, .chart-card, .table-card, .map-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    box-shadow: var(--shadow-soft);
+  }
+  .kpi { padding: 15px; min-width: 0; }
+  .kpi .label { color: var(--text-muted); font-size: 0.72rem; font-weight: 850; text-transform: uppercase; letter-spacing: 0.04em; }
+  .kpi .value { margin-top: 7px; font-size: 1.7rem; line-height: 1; font-weight: 850; color: var(--text); }
+  .kpi.featured { background: color-mix(in oklch, var(--accent-soft) 54%, var(--surface) 46%); border-color: color-mix(in oklch, var(--accent) 24%, var(--border)); }
+  .kpi .foot { margin-top: 7px; color: var(--text-muted); font-size: 0.78rem; font-weight: 700; overflow-wrap: anywhere; }
+  .grid-2 { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr); gap: 14px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  .chart-card, .table-card, .map-card { padding: 14px; min-width: 0; }
+  .map-card { position: relative; }
+  .map-card.tooltip-active { z-index: 20; }
+  .card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+  .card-head h2 { margin: 0; font-size: 0.98rem; font-weight: 850; }
+  .hint { color: var(--text-muted); font-size: 0.78rem; font-weight: 700; }
+  .chart-box { position: relative; height: 288px; min-width: 0; }
+  .chart-box.tall { height: 340px; }
+  .bar-list { display: flex; flex-direction: column; gap: 8px; }
+  .bar-row { display: grid; grid-template-columns: minmax(90px, 140px) minmax(0, 1fr) 68px; gap: 8px; align-items: center; font-size: 0.82rem; }
+  .bar-label { color: var(--text); font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bar-track { height: 9px; border-radius: 999px; background: var(--surface2); overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 999px; background: var(--accent); }
+  .bar-num { color: var(--text-muted); text-align: right; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .map-box { position: relative; height: 310px; border-radius: 8px; background: var(--surface-soft); overflow: hidden; border: 1px solid var(--border); }
+  .map-box svg { width: 100%; height: 100%; display: block; }
+  .map-region { stroke: var(--surface); stroke-width: 0.55; transition: fill var(--duration-fast) var(--ease-out); }
+  .map-region:hover { stroke: var(--text); stroke-width: 0.9; }
+  .map-sphere { fill: color-mix(in oklch, var(--blue) 6%, var(--surface)); stroke: var(--border); stroke-width: 0.8; }
+  .map-graticule { fill: none; stroke: color-mix(in oklch, var(--border) 70%, transparent); stroke-width: 0.5; }
+  .map-tooltip {
+    position: absolute; pointer-events: none; display: none; z-index: 30;
+    min-width: 170px; max-width: 220px; border-radius: 8px; background: var(--text); color: var(--surface); padding: 10px 11px;
+    box-shadow: var(--shadow); font-size: 0.78rem;
+  }
+  .map-tooltip.on { display: block; }
+  .map-tooltip strong { display: block; margin-bottom: 3px; font-size: 0.84rem; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid color-mix(in oklch, var(--border) 75%, transparent); }
+  th { color: var(--text-muted); font-size: 0.72rem; font-weight: 850; text-transform: uppercase; letter-spacing: 0.04em; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .empty {
+    display: none; border: 1px solid var(--border); border-radius: 8px; background: var(--surface);
+    padding: 28px; box-shadow: var(--shadow-soft); color: var(--text-muted); font-weight: 750;
+  }
+  .empty.show { display: block; }
+  .app-credit { text-align: center; padding: 8px 0 0; font-size: 0.76rem; color: var(--text-soft); font-weight: 700; }
+  .app-credit strong { color: var(--accent-strong); font-weight: 850; }
+  @media (max-width: 980px) {
+    :root { --nav-h: auto; }
+    .top-nav { height: auto; flex-direction: column; align-items: stretch; padding: 12px; }
+    .nav-links { width: 100%; justify-content: center; flex-wrap: wrap; row-gap: 6px; overflow-x: visible; }
+    .nav-link { flex: 0 0 auto; padding: 7px 10px; font-size: 0.8rem; }
+    .page { padding: 18px 14px 48px; }
+    .page-header, .grid-2, .grid-3, .upload-tray { grid-template-columns: 1fr; }
+    .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 560px) {
+    .nav-links { display: grid; grid-template-columns: repeat(2, max-content); justify-content: center; justify-items: center; }
+    .metric-grid { grid-template-columns: 1fr; }
+    .toolbar { align-items: stretch; }
+    .toolbar-group { width: 100%; overflow-x: visible; }
+    .segmented { width: 100%; flex-wrap: wrap; overflow-x: visible; border-radius: 8px; }
+    .segment { flex: 1 1 72px; }
+    input[type="date"] { flex: 1 1 140px; min-width: 0; }
+    .btn { width: 100%; }
+    .bar-row { grid-template-columns: minmax(72px, 108px) minmax(0, 1fr) 56px; }
+  }
+</style>
+</head>
+<body>
+<nav class="top-nav">
+  <div class="nav-logo">
+    <div class="nav-logo-badge" aria-hidden="true">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M3 3h8v8H3zm10 0h8v8h-8zM3 13h8v8H3zm10 0h8v8h-8z"/></svg>
+    </div>
+    <span style="font-weight:700;font-size:1.1rem;color:#FFFFFF;">WebHub</span>
+  </div>
+  <div class="nav-links">
+    <a href="/requests" class="nav-link">Requests</a>
+    <a href="/progress" class="nav-link">In Progress</a>
+    <a href="/dashboard" class="nav-link">Dashboard</a>
+    <a href="/consent" class="nav-link active">Consent Metrics</a>
+    <a href="/speed-index" class="nav-link">Speed Index</a>
+  </div>
+</nav>
+
+<main class="page">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">DataGrail</p>
+      <h1>Consent Metrics</h1>
+      <p class="subline" id="summary-line">Loading consent metrics...</p>
+    </div>
+    <div class="freshness">
+      <span class="badge" id="range-badge">Range: loading</span>
+      <span class="badge" id="source-badge">Source: loading</span>
+      <span class="badge warn" id="fallback-badge" style="display:none;">Bundled fallback</span>
+    </div>
+  </header>
+
+  <section class="toolbar" aria-label="Consent dashboard controls">
+    <div class="toolbar-group">
+      <div class="segmented" aria-label="Date presets">
+        <button class="segment active" data-range="all" type="button">All data</button>
+        <button class="segment" data-range="7" type="button">Latest 7 days</button>
+        <button class="segment" data-range="30" type="button">Latest 30 days</button>
+        <button class="segment" data-range="custom" type="button">Custom</button>
+      </div>
+      <input type="date" id="start-date" aria-label="Start date" disabled>
+      <input type="date" id="end-date" aria-label="End date" disabled>
+      <button class="btn secondary" id="apply-range" type="button" disabled>Apply</button>
+    </div>
+    <div class="toolbar-group">
+      <button class="btn" id="toggle-upload" type="button">Upload DataGrail export</button>
+    </div>
+  </section>
+
+  <section class="upload-tray" id="upload-tray" aria-label="Upload updated DataGrail consent export">
+    <div>
+      <h2 class="panel-title">Import updated consent logs</h2>
+      <p class="panel-copy">Drop DataGrail consent audit exports here. Raw files and raw visitor IDs are not retained.</p>
+      <label class="dropzone" id="dropzone" for="audit-file-input">
+        <input id="audit-file-input" type="file" accept=".csv,.tsv,.json,text/csv,text/tab-separated-values,application/json" multiple>
+        <strong>Drop updated file here</strong>
+        <span>CSV, TSV, or DataGrail JSON export</span>
+      </label>
+      <div class="upload-progress" id="upload-progress" aria-live="polite">
+        <div class="upload-progress-head">
+          <div>
+            <p class="upload-progress-title" id="upload-progress-title">Parsing export</p>
+            <p class="upload-progress-copy" id="upload-progress-copy">Preparing files...</p>
+          </div>
+          <button class="btn secondary compact" id="choose-another-export" type="button" hidden>Choose another export</button>
+        </div>
+        <div class="upload-progress-track" aria-hidden="true">
+          <div class="upload-progress-fill"></div>
+        </div>
+      </div>
+      <div class="status" id="upload-status"></div>
+    </div>
+    <div class="preview-box">
+      <h2 class="panel-title">Recent imports</h2>
+      <div id="preview-summary" class="panel-copy">No staged upload.</div>
+      <div class="toolbar-group">
+        <button class="btn" id="confirm-upload" type="button" disabled>Confirm shared update</button>
+      </div>
+      <div id="import-log"></div>
+    </div>
+  </section>
+
+  <section class="empty" id="empty-state">No consent data is loaded yet. Use the upload action to import a DataGrail export.</section>
+
+  <section class="metric-grid" id="kpi-grid">
+    <div class="kpi featured"><div class="label">People checked</div><div class="value" id="k-visitors">-</div><div class="foot" id="k-visitors-foot">-</div></div>
+    <div class="kpi"><div class="label">Opt-in rate</div><div class="value" id="k-in">-</div><div class="foot" id="k-in-foot">-</div></div>
+    <div class="kpi"><div class="label">Opt-out rate</div><div class="value" id="k-out">-</div><div class="foot" id="k-out-foot">-</div></div>
+    <div class="kpi"><div class="label">Dismissed banner</div><div class="value" id="k-dismissed">-</div><div class="foot" id="k-dismissed-foot">-</div></div>
+  </section>
+
+  <section class="grid-2">
+    <div class="chart-card">
+      <div class="card-head"><h2>Daily outcome trend</h2><span class="hint">Export timestamp date</span></div>
+      <div class="chart-box tall"><canvas id="daily-chart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="card-head"><h2>Consent outcomes</h2><span class="hint">All banner events</span></div>
+      <div class="chart-box"><canvas id="outcome-chart"></canvas></div>
+    </div>
+  </section>
+
+  <section class="grid-3">
+    <div class="map-card">
+      <div class="card-head"><h2>Countries</h2><span class="hint">Opt-out rate</span></div>
+      <div class="map-box" id="world-map"><svg viewBox="0 0 960 500"></svg><div class="map-tooltip" id="world-tt"></div></div>
+    </div>
+    <div class="map-card">
+      <div class="card-head"><h2>US states</h2><span class="hint">Opt-out rate</span></div>
+      <div class="map-box" id="us-map"><svg viewBox="0 0 960 600"></svg><div class="map-tooltip" id="us-tt"></div></div>
+    </div>
+    <div class="map-card">
+      <div class="card-head"><h2>Canadian provinces</h2><span class="hint">Opt-out rate</span></div>
+      <div class="map-box" id="ca-map"><svg viewBox="0 0 960 600"></svg><div class="map-tooltip" id="ca-tt"></div></div>
+    </div>
+  </section>
+
+  <section class="grid-2">
+    <div class="table-card">
+      <div class="card-head"><h2>Raw consent state</h2><span class="hint">Top states</span></div>
+      <div class="bar-list" id="state-bars"></div>
+    </div>
+    <div class="table-card">
+      <div class="card-head"><h2>Privacy policy</h2><span class="hint">Top policies</span></div>
+      <div class="bar-list" id="policy-bars"></div>
+    </div>
+  </section>
+
+  <section class="grid-2">
+    <div class="chart-card">
+      <div class="card-head"><h2>Cookie category acceptance</h2><span class="hint">Enabled share</span></div>
+      <div class="chart-box"><canvas id="category-chart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="card-head"><h2>Custom-preference combinations</h2><span class="hint" id="combo-hint">Custom events</span></div>
+      <div class="chart-box"><canvas id="combo-chart"></canvas></div>
+    </div>
+  </section>
+
+  <section class="grid-2">
+    <div class="table-card">
+      <div class="card-head"><h2>Top countries</h2><span class="hint">Event count</span></div>
+      <div class="bar-list" id="country-bars"></div>
+    </div>
+    <div class="table-card">
+      <div class="card-head"><h2>Import detail</h2><span class="hint">Latest source files</span></div>
+      <div id="source-table"></div>
+    </div>
+  </section>
+
+  <div class="app-credit">Built for <strong>Homebase Web</strong></div>
+</main>
+
+<script>
+const fmt = new Intl.NumberFormat('en-US');
+const pct = value => (Number(value || 0)).toFixed(1) + '%';
+const colors = {
+  in: 'oklch(0.58 0.15 152)',
+  out: 'oklch(0.55 0.19 23)',
+  part: 'oklch(0.56 0.18 345)',
+  dismissed: 'oklch(0.62 0.038 300)',
+  other: 'oklch(0.56 0.16 250)',
+  accent: 'oklch(0.49 0.19 300)',
+};
+let charts = {};
+let currentRange = { preset: 'all', start: '', end: '' };
+let currentData = null;
+let availableRange = ['', ''];
+let maps = {};
+let stagedToken = null;
+let canCommit = false;
+let lastUploadNames = [];
+
+if (window.Chart) {
+  Chart.defaults.font.family = "'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif";
+  Chart.defaults.color = "oklch(0.48 0.05 300)";
+  Chart.defaults.borderColor = "oklch(0.88 0.025 305)";
+  Chart.defaults.plugins.tooltip.backgroundColor = "oklch(0.19 0.055 300)";
+  Chart.defaults.plugins.tooltip.cornerRadius = 8;
+  Chart.defaults.plugins.tooltip.padding = 12;
+}
+
+function destroyChart(id) {
+  if (charts[id]) charts[id].destroy();
+  charts[id] = null;
+}
+
+function makeChart(id, config) {
+  destroyChart(id);
+  charts[id] = new Chart(document.getElementById(id), config);
+}
+
+function esc(value) {
+  return String(value == null ? '' : value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+
+function apiUrl() {
+  const params = new URLSearchParams();
+  if (currentRange.start) params.set('start', currentRange.start);
+  if (currentRange.end) params.set('end', currentRange.end);
+  const qs = params.toString();
+  return '/api/consent/report' + (qs ? '?' + qs : '');
+}
+
+function parseIsoDate(value) {
+  return value ? new Date(value + 'T00:00:00Z') : null;
+}
+
+function isoDate(date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function todayIso() {
+  return isoDate(new Date());
+}
+
+function addDays(value, days) {
+  const date = parseIsoDate(value);
+  if (!date) return '';
+  date.setUTCDate(date.getUTCDate() + days);
+  return isoDate(date);
+}
+
+function maxIso(a, b) {
+  if (!a) return b || '';
+  if (!b) return a || '';
+  return a > b ? a : b;
+}
+
+function minIso(a, b) {
+  if (!a) return b || '';
+  if (!b) return a || '';
+  return a < b ? a : b;
+}
+
+function syncDateInputs() {
+  const start = document.getElementById('start-date');
+  const end = document.getElementById('end-date');
+  const min = availableRange[0] || '';
+  const max = availableRange[1] || '';
+  start.min = min;
+  start.max = max;
+  end.min = min;
+  end.max = max;
+}
+
+async function loadMaps() {
+  const [world, us, canada] = await Promise.all([
+    fetch('/vendor/consent/world-countries-110m.json').then(r => r.json()),
+    fetch('/vendor/consent/us-states-10m.json').then(r => r.json()),
+    fetch('/vendor/consent/canada-provinces.geojson').then(r => r.json()),
+  ]);
+  maps = { world, us, canada };
+}
+
+async function loadReport() {
+  const res = await fetch(apiUrl(), { cache: 'no-store' });
+  if (!res.ok) throw new Error('Could not load consent report');
+  currentData = await res.json();
+  renderDashboard(currentData);
+  loadImports();
+}
+
+async function loadImports() {
+  const res = await fetch('/api/consent/imports', { cache: 'no-store' });
+  const payload = res.ok ? await res.json() : { imports: [] };
+  renderImports(payload.imports || []);
+}
+
+function renderDashboard(data) {
+  const total = data.total_events || 0;
+  const source = data.source || {};
+  if (source.available_date_range && source.available_date_range.length === 2) {
+    availableRange = source.available_date_range;
+  } else if (!availableRange[0] && data.date_range && data.date_range[0]) {
+    availableRange = data.date_range;
+  }
+  syncDateInputs();
+
+  const applied = source.filter || {};
+  const empty = document.getElementById('empty-state');
+  empty.classList.toggle('show', total === 0);
+  empty.textContent = applied.start || applied.end
+    ? `No consent data for ${applied.start || availableRange[0] || 'the beginning'} to ${applied.end || availableRange[1] || 'the end'}. Available uploaded data is ${availableRange[0] || '-'} to ${availableRange[1] || '-'}.`
+    : 'No consent data is loaded yet. Use the upload action to import a DataGrail export.';
+  document.getElementById('kpi-grid').style.display = total === 0 ? 'none' : 'grid';
+  document.getElementById('summary-line').textContent =
+    `${fmt.format(total)} banner events · ${fmt.format(data.unique_visitors || 0)} unique visitors`;
+  document.getElementById('range-badge').textContent =
+    applied.start || applied.end
+      ? `Filter: ${applied.start || availableRange[0] || '-'} to ${applied.end || availableRange[1] || '-'}`
+      : `Data: ${(data.date_range || ['', ''])[0] || '-'} to ${(data.date_range || ['', ''])[1] || '-'}`;
+  const runtime = data.runtime || {};
+  document.getElementById('fallback-badge').style.display = runtime.fallback ? 'inline-flex' : 'none';
+  canCommit = runtime.canCommit !== false;
+
+  const latest = source.latest_imported_at ? new Date(source.latest_imported_at).toLocaleString() : null;
+  document.getElementById('source-badge').textContent = latest ? `Last import: ${latest}` : `Source: ${source.mode || 'bundled'}`;
+
+  const b = data.buckets || {};
+  document.getElementById('k-visitors').textContent = fmt.format(data.unique_visitors || 0);
+  document.getElementById('k-visitors-foot').textContent = `${fmt.format(total)} total events`;
+  document.getElementById('k-in').textContent = pct(data.rates && data.rates.opt_in_all);
+  document.getElementById('k-in-foot').textContent = `${fmt.format(b.opt_in || 0)} accepted all`;
+  document.getElementById('k-out').textContent = pct(data.rates && data.rates.opt_out_all);
+  document.getElementById('k-out-foot').textContent = `${fmt.format(b.opt_out || 0)} essential-only / DNT / GPC`;
+  document.getElementById('k-dismissed').textContent = pct(data.rates && data.rates.dismissed_all);
+  document.getElementById('k-dismissed-foot').textContent = `${fmt.format(b.dismissed || 0)} closed without deciding`;
+
+  renderCharts(data);
+  renderMaps(data);
+  renderBars('state-bars', data.states || [], total);
+  renderBars('policy-bars', data.policies || [], total);
+  renderBars('country-bars', data.countries || [], total);
+  renderSource(source);
+}
+
+function renderCharts(data) {
+  const b = data.buckets || {};
+  makeChart('outcome-chart', {
+    type: 'doughnut',
+    data: {
+      labels: ['Opt-in', 'Opt-out', 'Partial', 'Dismissed', 'Other'],
+      datasets: [{
+        data: [b.opt_in || 0, b.opt_out || 0, b.partial || 0, b.dismissed || 0, b.other || 0],
+        backgroundColor: [colors.in, colors.out, colors.part, colors.dismissed, colors.other],
+        borderColor: 'oklch(0.998 0.004 305)',
+        borderWidth: 2,
+      }],
+    },
+    options: { responsive: true, maintainAspectRatio: false, cutout: '62%', plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } } } },
+  });
+
+  const daily = data.daily || { labels: [], opt_in: [], opt_out: [], partial: [], dismissed: [] };
+  makeChart('daily-chart', {
+    type: 'bar',
+    data: {
+      labels: daily.labels,
+      datasets: [
+        { label: 'Opt-in', data: daily.opt_in, backgroundColor: colors.in, stack: 's' },
+        { label: 'Opt-out', data: daily.opt_out, backgroundColor: colors.out, stack: 's' },
+        { label: 'Partial', data: daily.partial, backgroundColor: colors.part, stack: 's' },
+        { label: 'Dismissed', data: daily.dismissed, backgroundColor: colors.dismissed, stack: 's' },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } } },
+      scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, beginAtZero: true } },
+    },
+  });
+
+  const cats = data.categories || {};
+  const catLabels = Object.keys(cats);
+  makeChart('category-chart', {
+    type: 'bar',
+    data: {
+      labels: catLabels,
+      datasets: [{ data: catLabels.map(k => cats[k].rate), backgroundColor: [colors.in, colors.out, colors.part, colors.other], borderRadius: 5 }],
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `${ctx.raw}% enabled` } } },
+      scales: { x: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' } }, y: { grid: { display: false } } },
+    },
+  });
+
+  const combos = data.custom_combos || { total: 0, rows: [] };
+  document.getElementById('combo-hint').textContent = `${fmt.format(combos.total || 0)} custom events`;
+  makeChart('combo-chart', {
+    type: 'bar',
+    data: {
+      labels: combos.rows.map(r => r.label),
+      datasets: [{ data: combos.rows.map(r => r.count), backgroundColor: colors.part, borderRadius: 5 }],
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: { beginAtZero: true }, y: { grid: { display: false } } },
+    },
+  });
+}
+
+function renderBars(id, rows, total) {
+  const host = document.getElementById(id);
+  if (!rows.length) {
+    host.innerHTML = '<div class="hint">No data</div>';
+    return;
+  }
+  host.innerHTML = rows.slice(0, 12).map(([label, count]) => {
+    const width = total ? Math.max(2, Math.round((count / total) * 100)) : 0;
+    return `<div class="bar-row"><div class="bar-label" title="${esc(label)}">${esc(label)}</div><div class="bar-track"><div class="bar-fill" style="width:${width}%"></div></div><div class="bar-num">${fmt.format(count)}</div></div>`;
+  }).join('');
+}
+
+function renderSource(source) {
+  const files = source.files || [];
+  if (!files.length) {
+    document.getElementById('source-table').innerHTML = '<div class="hint">No import details available.</div>';
+    return;
+  }
+  document.getElementById('source-table').innerHTML = `<table><thead><tr><th>File</th><th class="num">Raw</th><th class="num">Unique</th><th class="num">Dupes</th></tr></thead><tbody>${files.slice(0, 8).map(file => `<tr><td>${esc(file.name)}</td><td class="num">${fmt.format(file.raw_rows || file.rows || 0)}</td><td class="num">${fmt.format(file.unique_rows || 0)}</td><td class="num">${fmt.format(file.duplicate_rows || 0)}</td></tr>`).join('')}</tbody></table>`;
+}
+
+function colorForCell(cell, minEvents) {
+  if (!cell || cell.total < minEvents) return 'oklch(0.9 0.012 305)';
+  const value = cell.opt_out_all || 0;
+  if (value < 6) return 'oklch(0.82 0.08 152)';
+  if (value < 12) return 'oklch(0.78 0.10 88)';
+  if (value < 20) return 'oklch(0.72 0.13 52)';
+  return 'oklch(0.62 0.17 23)';
+}
+
+function tooltipHtml(title, sub, cell) {
+  if (!cell) return `<strong>${esc(title)}</strong><div>${esc(sub || 'No events')}</div>`;
+  return `<strong>${esc(title)}</strong><div>${esc(sub || '')}</div><div>${fmt.format(cell.total)} events</div><div>${pct(cell.opt_out_all)} opt-out</div>`;
+}
+
+function positionTooltip(tt, tooltipId, event) {
+  const box = document.getElementById(tooltipId).parentElement;
+  const rect = box.getBoundingClientRect();
+  const node = tt.node();
+  const gap = 12;
+  const inset = 8;
+  const width = node.offsetWidth || 190;
+  const height = node.offsetHeight || 92;
+  const x = event.clientX - rect.left;
+  const y = event.clientY - rect.top;
+  let left = x + gap;
+  let top = y + gap;
+
+  if (left + width > rect.width - inset) left = x - width - gap;
+  if (top + height > rect.height - inset) top = y - height - gap;
+  left = Math.max(inset, Math.min(left, rect.width - width - inset));
+  top = Math.max(inset, Math.min(top, rect.height - height - inset));
+
+  tt.style('left', left + 'px').style('top', top + 'px');
+}
+
+function mountMap(selector, tooltipId, features, pathFn, lookup, label, minEvents, before) {
+  const svg = d3.select(selector);
+  svg.selectAll('*').remove();
+  if (before) before(svg);
+  const tt = d3.select('#' + tooltipId);
+  const card = document.getElementById(tooltipId).closest('.map-card');
+  svg.selectAll('path.map-region')
+    .data(features)
+    .enter()
+    .append('path')
+    .attr('class', 'map-region')
+    .attr('d', pathFn)
+    .attr('fill', d => colorForCell(lookup(d), minEvents))
+    .on('mousemove', function(event, d) {
+      const cell = lookup(d);
+      const info = label(d);
+      if (card) card.classList.add('tooltip-active');
+      tt.html(tooltipHtml(info.title, info.sub, cell)).classed('on', true);
+      positionTooltip(tt, tooltipId, event);
+    })
+    .on('mouseleave', () => {
+      tt.classed('on', false);
+      if (card) card.classList.remove('tooltip-active');
+    });
+}
+
+function renderMaps(data) {
+  if (!maps.world || !window.d3 || !window.topojson) return;
+  const geo = data.geo || { countries: {}, us_states: {}, ca_provinces: {}, min_events_country: 20, min_events_region: 20 };
+  const worldExtent = [[28, 24], [932, 476]];
+  const regionExtent = [[34, 30], [926, 570]];
+  const countries = topojson.feature(maps.world, maps.world.objects.countries).features;
+  const worldProjection = d3.geoNaturalEarth1().fitExtent(worldExtent, { type: 'Sphere' });
+  const worldPath = d3.geoPath(worldProjection);
+  mountMap('#world-map svg', 'world-tt', countries, worldPath, d => geo.countries[String(d.id).padStart(3, '0')], d => {
+    const cell = geo.countries[String(d.id).padStart(3, '0')];
+    return { title: d.properties.name, sub: cell ? cell.iso2 : '' };
+  }, geo.min_events_country, svg => {
+    svg.append('path').attr('class', 'map-sphere').attr('d', worldPath({ type: 'Sphere' }));
+    svg.append('path').attr('class', 'map-graticule').attr('d', worldPath(d3.geoGraticule10()));
+  });
+
+  const states = topojson.feature(maps.us, maps.us.objects.states).features;
+  const usProjection = d3.geoAlbersUsa().fitExtent(regionExtent, topojson.feature(maps.us, maps.us.objects.states));
+  const usPath = d3.geoPath(usProjection);
+  mountMap('#us-map svg', 'us-tt', states, usPath, d => geo.us_states[String(d.id).padStart(2, '0')], d => {
+    const cell = geo.us_states[String(d.id).padStart(2, '0')];
+    return { title: d.properties.name, sub: cell ? cell.code : '' };
+  }, geo.min_events_region);
+
+  const provinces = maps.canada.features;
+  const caProjection = d3.geoMercator().fitExtent(regionExtent, maps.canada);
+  const caPath = d3.geoPath(caProjection);
+  mountMap('#ca-map svg', 'ca-tt', provinces, caPath, d => geo.ca_provinces[d.properties.name], d => {
+    const cell = geo.ca_provinces[d.properties.name];
+    return { title: d.properties.name, sub: cell ? cell.code : '' };
+  }, geo.min_events_region);
+}
+
+function renderImports(imports) {
+  const host = document.getElementById('import-log');
+  if (!imports.length) {
+    host.innerHTML = '<div class="hint">No shared imports recorded.</div>';
+    return;
+  }
+  host.innerHTML = `<table><thead><tr><th>Import</th><th class="num">Raw</th><th class="num">New</th><th class="num">Dupes</th></tr></thead><tbody>${imports.slice(0, 6).map(item => {
+    const fileNames = (item.files || []).map(file => file.name).join(', ');
+    const when = item.committed_at ? new Date(item.committed_at).toLocaleString() : item.status;
+    return `<tr><td><strong>${esc(when)}</strong><br><span class="hint">${esc(fileNames || item.status)}</span></td><td class="num">${fmt.format(item.raw_rows || 0)}</td><td class="num">${fmt.format(item.new_rows || 0)}</td><td class="num">${fmt.format(item.duplicate_rows || 0)}</td></tr>`;
+  }).join('')}</tbody></table>`;
+}
+
+function setStatus(message, kind) {
+  const el = document.getElementById('upload-status');
+  el.textContent = message || '';
+  el.className = 'status ' + (kind || '');
+}
+
+function uploadNames(files) {
+  const names = Array.from(files || []).map(file => file.name || file).filter(Boolean);
+  return names.length ? names.join(', ') : lastUploadNames.join(', ');
+}
+
+function setUploadProgress(state, files, message) {
+  const dropzone = document.getElementById('dropzone');
+  const progress = document.getElementById('upload-progress');
+  const title = document.getElementById('upload-progress-title');
+  const copy = document.getElementById('upload-progress-copy');
+  const chooseAnother = document.getElementById('choose-another-export');
+  if (files && Array.from(files).length) lastUploadNames = Array.from(files).map(file => file.name || file);
+
+  progress.className = 'upload-progress show ' + state;
+  dropzone.classList.toggle('closed', state !== 'idle');
+  chooseAnother.hidden = state === 'parsing' || state === 'committing';
+
+  const names = uploadNames(files);
+  if (state === 'parsing') {
+    title.textContent = 'Parsing export';
+    copy.textContent = names ? `Reading ${names}` : 'Reading selected files';
+  } else if (state === 'ready') {
+    title.textContent = 'Preview ready';
+    copy.textContent = message || 'Review the counts, then confirm the shared update.';
+  } else if (state === 'committing') {
+    title.textContent = 'Updating shared metrics';
+    copy.textContent = 'Committing parsed rows to Lakebase...';
+  } else if (state === 'complete') {
+    title.textContent = 'Shared metrics updated';
+    copy.textContent = message || 'The dashboard has refreshed with the latest committed data.';
+  } else if (state === 'error') {
+    title.textContent = 'Import needs attention';
+    copy.textContent = message || 'The export could not be parsed.';
+  } else {
+    progress.className = 'upload-progress';
+    dropzone.classList.remove('closed');
+    chooseAnother.hidden = true;
+  }
+}
+
+function resetUploadPicker() {
+  stagedToken = null;
+  document.getElementById('audit-file-input').value = '';
+  document.getElementById('confirm-upload').disabled = true;
+  document.getElementById('preview-summary').textContent = 'No staged upload.';
+  setStatus('', '');
+  setUploadProgress('idle');
+}
+
+async function previewFiles(fileList) {
+  const files = Array.from(fileList || []);
+  if (!files.length) return;
+  stagedToken = null;
+  document.getElementById('confirm-upload').disabled = true;
+  setUploadProgress('parsing', files);
+  setStatus('Parsing export...', '');
+  const form = new FormData();
+  files.forEach(file => form.append('files', file, file.name));
+  try {
+    const res = await fetch('/api/consent/upload/preview', { method: 'POST', body: form });
+    const payload = await res.json();
+    if (!res.ok) throw new Error((payload.error && payload.error.message) || 'Upload preview failed');
+    stagedToken = payload.token;
+    const commitAllowed = payload.can_commit !== false && payload.runtime && payload.runtime.canCommit !== false && canCommit;
+    document.getElementById('confirm-upload').disabled = !commitAllowed;
+    document.getElementById('preview-summary').innerHTML =
+      `<strong>${fmt.format(payload.raw_rows || 0)}</strong> raw rows · <strong>${fmt.format(payload.new_rows || 0)}</strong> new · <strong>${fmt.format(payload.duplicate_rows || 0)}</strong> duplicates`;
+    setUploadProgress('ready', files, commitAllowed ? 'Preview ready. Confirm to update shared metrics.' : 'Preview ready, but shared commit is unavailable while Lakebase is unavailable.');
+    setStatus(commitAllowed ? 'Preview ready. Confirm to update shared metrics.' : 'Preview ready. Shared commit is unavailable while Lakebase is unavailable.', commitAllowed ? 'ok' : '');
+  } catch (err) {
+    document.getElementById('preview-summary').textContent = 'No staged upload.';
+    setUploadProgress('error', files, err.message);
+    setStatus(err.message, 'err');
+  }
+}
+
+async function commitUpload() {
+  if (!stagedToken) return;
+  setUploadProgress('committing');
+  setStatus('Committing shared update...', '');
+  document.getElementById('confirm-upload').disabled = true;
+  try {
+    const res = await fetch('/api/consent/upload/commit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: stagedToken }),
+    });
+    const payload = await res.json();
+    if (!res.ok) throw new Error((payload.error && payload.error.message) || 'Upload commit failed');
+    stagedToken = null;
+    setUploadProgress('complete');
+    setStatus('Shared metrics updated.', 'ok');
+    document.getElementById('preview-summary').textContent = 'No staged upload.';
+    await loadReport();
+  } catch (err) {
+    setUploadProgress('error', null, err.message);
+    document.getElementById('confirm-upload').disabled = !stagedToken;
+    setStatus(err.message, 'err');
+  }
+}
+
+function setPreset(preset) {
+  currentRange = { preset, start: '', end: '' };
+  const start = document.getElementById('start-date');
+  const end = document.getElementById('end-date');
+  start.disabled = preset !== 'custom';
+  end.disabled = preset !== 'custom';
+  document.getElementById('apply-range').disabled = preset !== 'custom';
+  const dataStart = availableRange[0] || '';
+  const dataEnd = availableRange[1] || todayIso();
+  if (preset === '7') {
+    currentRange.start = maxIso(dataStart, addDays(dataEnd, -6));
+    currentRange.end = dataEnd;
+    start.value = currentRange.start;
+    end.value = currentRange.end;
+  } else if (preset === '30') {
+    currentRange.start = maxIso(dataStart, addDays(dataEnd, -29));
+    currentRange.end = dataEnd;
+    start.value = currentRange.start;
+    end.value = currentRange.end;
+  } else if (preset === 'custom') {
+    start.value = start.value || currentRange.start || dataStart;
+    end.value = end.value || currentRange.end || dataEnd;
+    currentRange.start = start.value;
+    currentRange.end = end.value;
+  } else {
+    start.value = '';
+    end.value = '';
+  }
+  document.querySelectorAll('.segment').forEach(btn => btn.classList.toggle('active', btn.dataset.range === preset));
+  if (preset !== 'custom') loadReport().catch(err => setStatus(err.message, 'err'));
+}
+
+document.getElementById('toggle-upload').addEventListener('click', () => {
+  document.getElementById('upload-tray').classList.toggle('open');
+});
+document.getElementById('confirm-upload').addEventListener('click', commitUpload);
+document.getElementById('audit-file-input').addEventListener('change', event => previewFiles(event.target.files));
+document.getElementById('choose-another-export').addEventListener('click', () => {
+  resetUploadPicker();
+  document.getElementById('audit-file-input').click();
+});
+document.getElementById('apply-range').addEventListener('click', () => {
+  currentRange.start = document.getElementById('start-date').value;
+  currentRange.end = document.getElementById('end-date').value;
+  if (currentRange.start && currentRange.end && currentRange.start > currentRange.end) {
+    setStatus('Start date must be before end date.', 'err');
+    return;
+  }
+  loadReport().catch(err => setStatus(err.message, 'err'));
+});
+document.querySelectorAll('.segment').forEach(btn => btn.addEventListener('click', () => setPreset(btn.dataset.range)));
+const dropzone = document.getElementById('dropzone');
+['dragenter', 'dragover'].forEach(type => dropzone.addEventListener(type, event => {
+  event.preventDefault();
+  dropzone.classList.add('dragging');
+}));
+['dragleave', 'drop'].forEach(type => dropzone.addEventListener(type, event => {
+  event.preventDefault();
+  dropzone.classList.remove('dragging');
+}));
+dropzone.addEventListener('drop', event => previewFiles(event.dataTransfer.files));
+
+const reportReady = loadReport();
+const mapsReady = loadMaps().then(() => {
+  if (currentData) renderMaps(currentData);
+});
+Promise.all([reportReady, mapsReady]).catch(err => {
+  document.getElementById('summary-line').textContent = err.message;
+});
+</script>
+</body>
+</html>

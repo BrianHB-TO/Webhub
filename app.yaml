@@ -1,0 +1,29 @@
+command:
+  - uvicorn
+  - app:app
+  - --host
+  - 0.0.0.0
+  - --port
+  - "8000"
+
+env:
+  - name: PGHOST
+    value: 'ep-divine-haze-d1jbjmnq.database.us-west-2.cloud.databricks.com'
+  - name: PGDATABASE
+    value: 'databricks_postgres'
+  - name: PGUSER
+    value: '49b4af05-7301-4d07-9fb5-5ae469dcd68e'
+  - name: PGPORT
+    value: '5432'
+  - name: PGSSLMODE
+    value: 'require'
+  - name: ENDPOINT_NAME
+    value: 'projects/web-hub-db/branches/production/endpoints/primary'
+  - name: WEBHUB_DASHBOARD_PASSWORD
+    value: 'PLACEHOLDER_SET_IN_DATABRICKS'
+  - name: JIRA_EMAIL
+    value: 'PLACEHOLDER_SET_IN_DATABRICKS'
+  - name: JIRA_API_TOKEN
+    value: 'PLACEHOLDER_SET_IN_DATABRICKS'
+  - name: ANTHROPIC_API_KEY
+    value: 'PLACEHOLDER_SET_IN_DATABRICKS'
